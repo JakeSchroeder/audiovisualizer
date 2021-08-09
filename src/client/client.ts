@@ -89,7 +89,9 @@ function init() {
 
     camera = new THREE.PerspectiveCamera(27, window.innerWidth / window.innerHeight, 5, 3500);
 
-    camera.position.z = 2750;
+    camera.position.x = 0;
+    camera.position.y = 0;
+    camera.position.z = 1000;
 
     const listener = new THREE.AudioListener();
     camera.add(listener);
@@ -99,7 +101,7 @@ function init() {
 
     // load a sound and set it as the Audio object's buffer
     const audioLoader = new THREE.AudioLoader();
-    audioLoader.load('./sounds/Avril 14th.mp3', function (buffer) {
+    audioLoader.load('./sounds/Bassnectar - Timestretch (Official).mp3', function (buffer) {
         sound.setBuffer(buffer);
         sound.setLoop(true);
         sound.setVolume(0.3);
@@ -160,12 +162,13 @@ function init() {
     orbitControls.update();
 
     orbitControls.enableZoom = false;
+    orbitControls.enablePan = false;
 
     orbitControls.minAzimuthAngle = 20;
 
     orbitControls.minPolarAngle = 20;
 
-    orbitControls.rotateSpeed = 0.1;
+    orbitControls.rotateSpeed = 0.2;
 
     if (containerDomNode) containerDomNode.appendChild(renderer.domElement);
 
@@ -298,8 +301,8 @@ function render() {
     const time = Date.now() * 0.001;
 
     points.rotation.x = Math.PI * -0.25;
-    points.rotation.x = time * 0.1;
-    points.rotation.y = time * 0.1;
+    points.rotation.x = time * 0.05;
+    points.rotation.y = time * 0.05;
 
     renderer.render(scene, camera);
 }
