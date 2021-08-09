@@ -91,7 +91,7 @@ function init() {
 
     // load a sound and set it as the Audio object's buffer
     const audioLoader = new THREE.AudioLoader();
-    audioLoader.load('./sounds/UMEK - Amnesiac (Original Mix).mp3', function (buffer) {
+    audioLoader.load('./sounds/Bassnectar - Timestretch (Official).mp3', function (buffer) {
         sound.setBuffer(buffer);
         sound.setLoop(true);
         sound.setVolume(0.3);
@@ -206,7 +206,7 @@ function showParticles() {
 
 
 
-        
+
         for (let n = 0; n < freqChannels; n++) {
             if (waveLength[n] > 0 && amp[n] > 0 && totalAmp) {
                 z +=
