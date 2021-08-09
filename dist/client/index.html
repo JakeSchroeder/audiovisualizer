@@ -5,14 +5,38 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Three.js TypeScript Tutorials by Sean Bradley</title>
         <style>
+            html {
+                width: 100%;
+                cursor: grab;
+            }
             body {
+                width: 100%;
                 overflow: hidden;
                 margin: 0px;
+            }
+            canvas {
+                z-index: -1;
+            }
+
+            button {
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+
+            button:last-child {
+                position: absolute;
+                right: 0;
+                top: 0;
+                margin-left: 20px;
             }
         </style>
     </head>
 
     <body>
+        <div id="overlay">
+            <div id="container"></div>
+        </div>
         <script type="module" src="bundle.js"></script>
     </body>
 </html>
