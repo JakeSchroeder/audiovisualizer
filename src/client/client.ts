@@ -159,6 +159,14 @@ function init() {
 
     orbitControls.update();
 
+    orbitControls.enableZoom = false;
+
+    orbitControls.minAzimuthAngle = 20;
+
+    orbitControls.minPolarAngle = 20;
+
+    orbitControls.rotateSpeed = 0.1;
+
     if (containerDomNode) containerDomNode.appendChild(renderer.domElement);
 
     //
