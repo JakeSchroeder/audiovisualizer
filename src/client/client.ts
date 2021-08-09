@@ -1,5 +1,7 @@
 import { time, timeEnd } from 'console';
+import { normalize } from 'path';
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import {
     Audio,
     AudioAnalyser,
@@ -34,14 +36,19 @@ let centerY: number;
 let soundData: Uint8Array;
 let freqChannels = 32;
 
+let EWMA_amp: number[] = [];
+let avgVolume: number = 0;
+let amp_multiplier: number = 0;
+
 let maxWaveSpeed = 100;
 let maxWaveLength = 400;
-let maxAmp = 10;
+let maxAmp = 100;
 let totalAmp = 0;
+let maxRadius = 1000;
 
-width = 200;
-height = 200;
-scale = 15;
+width = 800;
+height = 800;
+scale = 14;
 
 let clock: Clock;
 let timeElapsed: number;
@@ -81,6 +88,7 @@ function init() {
     clock = new Clock(true);
 
     camera = new THREE.PerspectiveCamera(27, window.innerWidth / window.innerHeight, 5, 3500);
+
     camera.position.z = 2750;
 
     const listener = new THREE.AudioListener();
@@ -91,7 +99,7 @@ function init() {
 
     // load a sound and set it as the Audio object's buffer
     const audioLoader = new THREE.AudioLoader();
-    audioLoader.load('./sounds/Bassnectar - Timestretch (Official).mp3', function (buffer) {
+    audioLoader.load('./sounds/Avril 14th.mp3', function (buffer) {
         sound.setBuffer(buffer);
         sound.setLoop(true);
         sound.setVolume(0.3);
@@ -147,6 +155,10 @@ function init() {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
 
+    let orbitControls = new OrbitControls(camera, renderer.domElement);
+
+    orbitControls.update();
+
     if (containerDomNode) containerDomNode.appendChild(renderer.domElement);
 
     //
@@ -190,6 +202,24 @@ function showParticles() {
         totalAmp += normalizedSoundAmp / freqChannels;
     }
 
+    //find out if the average volume is larger than the recent past
+    EWMA_amp.push(totalAmp);
+    let EWMA_average = 0;
+    let EWMA_range = 10;
+    amp_multiplier = 1;
+    for (let n = EWMA_amp.length - EWMA_range; n < EWMA_amp.length; n++) {
+        EWMA_average += EWMA_amp[n] / EWMA_range;
+    }
+
+    for (let n = 0; n < EWMA_amp.length; n++) {
+        avgVolume += EWMA_amp[n] / EWMA_amp.length;
+    }
+
+    let autoLeveler = 0.5 - avgVolume + 0.5;
+    autoLeveler = 1;
+
+    if (totalAmp && EWMA_average) amp_multiplier = totalAmp / EWMA_average;
+
     for (let i = 0; i < particles * 3; i += 3) {
         //get position of current particle
         let x = positions[i];
@@ -199,38 +229,44 @@ function showParticles() {
             Math.abs(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2))
         );
 
-        let z = positions[i + 2];
+        let z = 0;
 
-        //add frequency ripple to graph
-        /*
+        let normalizedDistFromCenter = distFromCenter / maxRadius;
+        let pointFrequencyAssignemnt = normalizedDistFromCenter * freqChannels;
+        if (pointFrequencyAssignemnt < freqChannels - 1) {
+            //which freq does this point map to
 
+            if (normalizedDistFromCenter > 1) normalizedDistFromCenter = 1;
 
-
-
-        for (let n = 0; n < freqChannels; n++) {
-            if (waveLength[n] > 0 && amp[n] > 0 && totalAmp) {
-                z +=
-                    maxAmp *
-                    (amp[n] / totalAmp) *
-                    Math.sin(distFromCenter / waveLength[n] - waveSpeed[n] * timeElapsed);
-            }
-        }
-        */
-
-        if (waveLength[6] > 0 && amp[6] > 0 && totalAmp)
             z =
-                maxAmp *
+                amp_multiplier *
                 totalAmp *
-                100 *
-                Math.sin(distFromCenter / (waveLength[6] / 10) - 10 * timeElapsed);
+                autoLeveler *
+                maxAmp *
+                amp[Math.floor(normalizedDistFromCenter * freqChannels)];
+
+            z +=
+                (amp_multiplier *
+                    totalAmp *
+                    autoLeveler *
+                    maxAmp *
+                    amp[Math.floor(normalizedDistFromCenter * freqChannels) + 1] -
+                    z) *
+                (normalizedDistFromCenter * freqChannels -
+                    Math.floor(normalizedDistFromCenter * freqChannels));
+        } else {
+            z = 0;
+        }
 
         //rebalancer
-        z *= -((distFromCenter - 10) / Math.sqrt(Math.pow(distFromCenter - 10, 2) + 10000)) + 1;
+        z *=
+            -30 * -((distFromCenter - 10) / Math.sqrt(Math.pow(distFromCenter - 10, 2) + 1000000)) +
+            1;
 
         //set Z pos
         const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
 
-        positions[i + 2] = clamp(z, -300, 300);
+        positions[i + 2] = clamp(z, -500, 500);
     }
 
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
