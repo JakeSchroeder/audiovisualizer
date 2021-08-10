@@ -30,13 +30,22 @@
                 top: 0;
                 margin-left: 20px;
             }
+
+            .ui__window {
+                display: flex;
+            }
         </style>
     </head>
 
     <body>
-        <div id="overlay">
-            <div id="container"></div>
+        <div class="ui">
+            <div class="ui__inner">
+                <div class="ui__window">
+                    <header class="window__header">Hello</header>
+                </div>
+            </div>
         </div>
+        <div id="container"></div>
         <script type="module" src="bundle.js"></script>
     </body>
 </html>

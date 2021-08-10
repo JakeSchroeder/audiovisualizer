@@ -99,12 +99,15 @@ function init() {
 
     // load a sound and set it as the Audio object's buffer
     const audioLoader = new THREE.AudioLoader();
-    audioLoader.load('./sounds/Avril 14th.mp3', function (buffer) {
-        sound.setBuffer(buffer);
-        sound.setLoop(true);
-        sound.setVolume(0.3);
-        sound.play();
-    });
+    audioLoader.load(
+        "./sounds/Pirates of the Caribbean - He's a Pirate (Extended).mp3",
+        function (buffer) {
+            sound.setBuffer(buffer);
+            sound.setLoop(true);
+            sound.setVolume(0.3);
+            sound.play();
+        }
+    );
 
     analyser = new THREE.AudioAnalyser(sound, freqChannels * 2);
 
