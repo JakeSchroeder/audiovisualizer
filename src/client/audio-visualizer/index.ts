@@ -14,12 +14,12 @@ class WEBGLAudioVisualizer {
     private camera: THREE.PerspectiveCamera;
     private orbitControls: OrbitControls;
 
-    private listener = new THREE.AudioListener();
-    private sound = new THREE.Audio(this.listener);
+    private listener: THREE.AudioListener;
+    private sound: THREE.Audio;
 
     private geometry = new THREE.BufferGeometry();
     private material: PointsMaterial;
-    private points: THREE.Points;
+    private points: Points;
 
     private positions: number[];
     private startTime: number;
@@ -35,7 +35,7 @@ class WEBGLAudioVisualizer {
 
     private sideLength: number;
 
-    private numOfParticles: number;
+    private particles: number;
     private particleSpacing: number;
     private userZoomLevel: number;
     private freqChannels: number;
@@ -46,7 +46,10 @@ class WEBGLAudioVisualizer {
 
         this.startTime = Date.now();
         this.renderer = new THREE.WebGLRenderer();
+        this.listener = new THREE.AudioListener();
+        this.sound = new THREE.Audio(this.listener);
         this.camera = new THREE.PerspectiveCamera(27, window.innerWidth / window.innerHeight, 5, 5000);
+        this.camera.position.z = 3500;
         this.scene = new Scene();
         this.scene.background = new THREE.Color(0x050505);
         this.scene.fog = new THREE.Fog(0x050505, 2000, 3500);
@@ -62,15 +65,14 @@ class WEBGLAudioVisualizer {
         this.previousAvgAmp = [];
         this.analyzer = new THREE.AudioAnalyser(this.sound, this.freqChannels * 2);
 
-        this.camera.position.z = 3500;
         this.userZoomLevel = 75;
         this.orbitControls.update();
         this.orbitControls.enableZoom = false;
         this.orbitControls.rotateSpeed = 0.1;
 
-        this.numOfParticles = 160000;
+        this.particles = 160000;
         this.particleSpacing = 15;
-        this.sideLength = Math.sqrt(this.numOfParticles);
+        this.sideLength = Math.sqrt(this.particles);
     }
 
     public createScene() {
@@ -100,14 +102,16 @@ class WEBGLAudioVisualizer {
         const colors: number[] = [];
         let color = new THREE.Color();
 
-        let offsetX = 0;
-        let offsetY = 0;
+        let offsetX = -((this.particleSpacing * this.sideLength) / 2);
+        let offsetY = -((this.particleSpacing * this.sideLength) / 2);
+        let centerX = offsetX + (this.particleSpacing * this.sideLength) / 2;
+        let centerY = offsetY + (this.particleSpacing * this.sideLength) / 2;
 
-        for (let i = 0; i < this.numOfParticles; i++) {
-            const xPos = i % this.sideLength;
+        for (let i = 0; i < this.particles; i++) {
+            const horiz_pos = i % this.sideLength;
             const vert_pos = Math.floor(i / this.sideLength);
 
-            let x = this.numOfParticles * xPos + offsetX;
+            let x = this.particleSpacing * horiz_pos + offsetX;
             let y = this.particleSpacing * vert_pos + offsetY;
             let z = 0;
 
@@ -142,11 +146,11 @@ class WEBGLAudioVisualizer {
             this.totalAmp += normalizedSoundAmp / this.freqChannels;
         }
 
-        //find out if the average volume is larger than the recent past
         this.previousAvgAmp.push(this.totalAmp);
         let EWMA_average = 0;
         let EWMA_range = 10;
         this.amp_multiplier = 1;
+
         for (let n = this.previousAvgAmp.length - EWMA_range; n < this.previousAvgAmp.length; n++) {
             EWMA_average += this.previousAvgAmp[n] / EWMA_range;
         }
@@ -160,7 +164,7 @@ class WEBGLAudioVisualizer {
 
         if (this.totalAmp && EWMA_average) this.amp_multiplier = this.totalAmp / EWMA_average;
 
-        for (let i = 0; i < this.numOfParticles * 3; i += 3) {
+        for (let i = 0; i < this.particles * 3; i += 3) {
             //get position of current particle
             let x = this.positions[i];
             let y = this.positions[i + 1];
