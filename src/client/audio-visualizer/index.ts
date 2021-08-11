@@ -38,23 +38,24 @@ class WEBGLAudioVisualizer {
     private numOfParticles: number;
     private particleSpacing: number;
     private userZoomLevel: number;
-    // private fog: THREE.Fog;
-    // private sceneBackground: THREE.Color;
     private freqChannels: number;
 
     constructor(containerDOMNodeId: string, audioSource: string) {
         this.containerDOMNode = document.getElementById(containerDOMNodeId) as Div;
         this.audioSource = audioSource;
 
+        this.startTime = Date.now();
+        this.renderer = new THREE.WebGLRenderer();
         this.camera = new THREE.PerspectiveCamera(27, window.innerWidth / window.innerHeight, 5, 5000);
         this.scene = new Scene();
-        this.renderer = new THREE.WebGLRenderer();
+        this.scene.background = new THREE.Color(0x050505);
+        this.scene.fog = new THREE.Fog(0x050505, 2000, 3500);
+
         this.orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
 
         this.material = new THREE.PointsMaterial({ size: 15, vertexColors: true });
         this.points = new THREE.Points(this.geometry, this.material);
 
-        this.startTime = Date.now();
         this.freqChannels = 32;
         this.positions = [];
         this.soundData = new Uint8Array();
@@ -67,12 +68,9 @@ class WEBGLAudioVisualizer {
         this.orbitControls.enableZoom = false;
         this.orbitControls.rotateSpeed = 0.1;
 
-        this.numOfParticles = 800;
+        this.numOfParticles = 160000;
         this.particleSpacing = 15;
         this.sideLength = Math.sqrt(this.numOfParticles);
-
-        let sceneBackground = new THREE.Color(0x050505);
-        let fog = new THREE.Fog(0x050505, 2000, 4100);
     }
 
     public createScene() {
@@ -107,7 +105,7 @@ class WEBGLAudioVisualizer {
 
         for (let i = 0; i < this.numOfParticles; i++) {
             const xPos = i % this.sideLength;
-            const vert_pos = Math.floor(i / Math.sqrt(this.numOfParticles));
+            const vert_pos = Math.floor(i / this.sideLength);
 
             let x = this.numOfParticles * xPos + offsetX;
             let y = this.particleSpacing * vert_pos + offsetY;
