@@ -2,7 +2,7 @@
     "compilerOptions": {
         "moduleResolution": "node",
         "strict": true,
-        "target": "ES5"
+        "target": "ES6"
     },
     "include": ["**/*.ts"]
 }
