@@ -27,11 +27,12 @@ class WEBGLAudioVisualizer {
     private soundData: Uint8Array;
     private previousAvgAmp: number[];
     private totalAvgVolume = 0;
-    private amp_multiplier = 0;
+    private beat_multiplier = 0;
 
     private maxAmp = 100;
     private totalAmp = 0;
-    private maxRadius = 1000;
+    private maxRadius = 3000;
+    private targetZHeight = 1.5;
 
     private sideLength: number;
 
@@ -54,18 +55,18 @@ class WEBGLAudioVisualizer {
         this.renderer = new THREE.WebGLRenderer();
         this.listener = new THREE.AudioListener();
         this.sound = new THREE.Audio(this.listener);
-        this.camera = new THREE.PerspectiveCamera(27, window.innerWidth / window.innerHeight, 5, 5000);
-        this.camera.position.z = 3500;
+        this.camera = new THREE.PerspectiveCamera(27, window.innerWidth / window.innerHeight, 5, 10000);
+        this.camera.position.z = 4000;
         this.scene = new Scene();
         this.scene.background = new THREE.Color(0x050505);
-        this.scene.fog = new THREE.Fog(0x050505, 3000, 4000);
+        this.scene.fog = new THREE.Fog(0x050505, 8000, 9000);
 
         this.orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
 
         this.material = new THREE.PointsMaterial({ size: 15, vertexColors: true });
         this.points = new THREE.Points(this.geometry, this.material);
 
-        this.freqChannels = 32;
+        this.freqChannels = 64;
         this.positions = [];
         this.soundData = new Uint8Array();
         this.previousAvgAmp = [];
@@ -73,11 +74,11 @@ class WEBGLAudioVisualizer {
 
         this.userZoomLevel = 75;
         this.orbitControls.update();
-        this.orbitControls.enableZoom = false;
+        // this.orbitControls.enableZoom = false;
         this.orbitControls.rotateSpeed = 0.1;
 
-        this.particles = 160000;
-        this.particleSpacing = 15;
+        this.particles = 100000;
+        this.particleSpacing = 16;
         this.sideLength = Math.sqrt(this.particles);
 
         this.integral = 0;
@@ -141,62 +142,50 @@ class WEBGLAudioVisualizer {
 
     private showParticles() {
         const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
-
         let deltaTime = Date.now() - this.previousTime;
         this.previousTime = Date.now();
-        let amp: number[] = [this.freqChannels];
-        this.totalAmp = 0;
-
-        this.totalAvgVolume = 0;
-
         let centerX = 0;
         let centerY = 0;
 
-        for (let f = 0; f < this.freqChannels; f++) {
-            //get sound amplitude and frequency
-            let normalizedSoundAmp = this.soundData[f] / 255;
-            if (!normalizedSoundAmp) normalizedSoundAmp = 0;
-            let normalizedSoundFreq = f / this.freqChannels;
+        //console.log(this.maxRadius);
 
-            amp[f] = normalizedSoundAmp; // Math.pow(normalizedSound, 2);
-            this.totalAmp += normalizedSoundAmp / this.freqChannels;
+        this.beat_multiplier = 1;
+
+        let amp: number[] = [this.freqChannels];
+        this.totalAmp = 0;
+        this.totalCurrentAvgZHeight = 0;
+        this.totalAvgVolume = 0;
+        let EWMA_average = 0;
+        let EWMA_range = 10;
+
+        for (let n = 0; n < Math.max(this.previousAvgAmp.length, this.freqChannels); n++) {
+            //averages the last 10 frames of avg volume data (normalized gaussian distribution)
+            if (this.previousAvgAmp.length - EWMA_range < n) {
+                EWMA_average += this.previousAvgAmp[n] / EWMA_range;
+            }
+            //get sound amplitude of each frequency
+            if (n < this.freqChannels) {
+                let normalizedSoundAmp = this.soundData[n] / 255;
+                if (!normalizedSoundAmp) normalizedSoundAmp = 0;
+
+                amp[n] = normalizedSoundAmp;
+                //calculate the running average amplitude for the frequencies of this frame
+                this.totalAmp += normalizedSoundAmp / this.freqChannels;
+            }
+            //averages all previous frames avg volume data
+            if (n < this.previousAvgAmp.length) {
+                this.totalAvgVolume += this.previousAvgAmp[n] / this.previousAvgAmp.length;
+            }
         }
 
         this.previousAvgAmp.push(this.totalAmp);
-        let EWMA_average = 0;
-        let EWMA_range = 10;
-        this.amp_multiplier = 1;
 
-        //averages the last 10 frames of avg volume data (normalized gaussian distribution)
-        for (let n = this.previousAvgAmp.length - EWMA_range; n < this.previousAvgAmp.length; n++) {
-            EWMA_average += this.previousAvgAmp[n] / EWMA_range;
-        }
+        if (this.totalAmp && EWMA_average) this.beat_multiplier = this.totalAmp / EWMA_average;
 
-        //averages all previous frames avg volume data
-        for (let n = 0; n < this.previousAvgAmp.length; n++) {
-            this.totalAvgVolume += this.previousAvgAmp[n] / this.previousAvgAmp.length;
-        }
+        let autoLeveler = clamp(this.integral, -1, 1);
+        //console.log(autoLeveler);
 
-        //totalAvgVolume will be between 0 and 1
-        //error = distance away from 0.5 volume
-        //let error = 0.5 - this.totalAvgVolume
-        //add error * time to the accumulator
-        //private instance field : integralSensitivityFactor = 1;
-        //private instance field : integral += integralSensitivityFactor * error * deltaTime;
-        //private instance field : previousTime and deltaTime need to be added
-
-        let error = 15 - this.totalCurrentAvgZHeight;
-
-        this.integral += this.integralSensitivityFactor * error * deltaTime;
-
-        // console.log(this.totalAvgZHeight);
-
-        let autoLeveler = clamp(this.integral, 0, 1);
-
-        if (this.totalAmp && EWMA_average) this.amp_multiplier = this.totalAmp / EWMA_average;
-
-        this.totalCurrentAvgZHeight = 0;
-
+        //for every particle ("i" represents the index of the coordinate position : [x,y,z,x,y,z,...])
         for (let i = 0; i < this.particles * 3; i += 3) {
             //get position of current particle
             let x = this.positions[i];
@@ -209,31 +198,43 @@ class WEBGLAudioVisualizer {
             let normalizedDistFromCenter = distFromCenter / this.maxRadius;
             let pointFrequencyAssignemnt = normalizedDistFromCenter * this.freqChannels;
             if (pointFrequencyAssignemnt < this.freqChannels - 1) {
-                //which freq does this point map to
+                //finds which freq this point maps to
 
+                //points beyond the radius are not influenced by the spectrograph volumes
                 if (normalizedDistFromCenter > 1) normalizedDistFromCenter = 1;
 
-                // (ratio of current frame average volume to the past (1-40frames') average volume) * (normalized avg volume of current frame) * ()
-                z = this.amp_multiplier * this.totalAmp * autoLeveler * this.maxAmp * amp[Math.floor(normalizedDistFromCenter * this.freqChannels)];
+                /* (ratio of current frame average volume to the past (1 to 40 frames') average volume) * 
+                   (normalized avg volume of current frame) *
+                   (modifier to influence the height of the particles based on the songs total Average Volume) *
+                   (the non-zero value that remaps the scalars to a larger range) *
+                   (the volume:height associated with this particles freqency)
+               */
+                z = this.beat_multiplier * this.totalAmp * this.maxAmp * amp[Math.floor(normalizedDistFromCenter * this.freqChannels)];
 
-                //interpolation
+                //then interpolation adjustment
                 z +=
-                    (this.amp_multiplier * this.totalAmp * autoLeveler * this.maxAmp * amp[Math.floor(normalizedDistFromCenter * this.freqChannels) + 1] - z) *
+                    (this.beat_multiplier * this.totalAmp * this.maxAmp * amp[Math.floor(normalizedDistFromCenter * this.freqChannels) + 1] - z) *
                     (normalizedDistFromCenter * this.freqChannels - Math.floor(normalizedDistFromCenter * this.freqChannels));
+
+                z += z * autoLeveler;
             } else {
                 z = 0;
             }
 
-            //rebalancer
+            //radial position based height rebalancer (creates the dome shap for the vitual speaker)
             z *= -30 * -((distFromCenter - 10) / Math.sqrt(Math.pow(distFromCenter - 10, 2) + 1000000)) + 1;
 
-            //set Z pos
-
-            this.positions[i + 2] = clamp(z, -900, 900);
+            //set Z pos and clamp max / min height
+            this.positions[i + 2] = clamp(z, -1000, 1000);
 
             this.totalCurrentAvgZHeight += z / this.particles;
-            this.allTotalAvgZHeights.push(this.totalCurrentAvgZHeight);
         }
+
+        let error = this.targetZHeight - this.totalCurrentAvgZHeight;
+        this.integral += this.integralSensitivityFactor * error * deltaTime;
+        this.maxRadius = this.integral * 0.000000001;
+
+        //console.log(error);
 
         this.geometry.setAttribute('position', new THREE.Float32BufferAttribute(this.positions, 3));
     }
@@ -248,14 +249,19 @@ class WEBGLAudioVisualizer {
     private render() {
         const time = -40 + (Date.now() - this.startTime) * 0.001;
 
-        let oscillationTime = 20;
-        let sweepAngle = 1.1;
+        let oscillationTime = 10;
+        let sweepAngle = 1;
 
         this.points.rotation.y = Math.sin(time / oscillationTime) * sweepAngle; //Math.sin(time / 20) * 5;
         this.points.rotation.z = Math.sin(time / oscillationTime) * sweepAngle;
         this.points.rotation.x = -Math.sin(5 + time / oscillationTime) * sweepAngle;
         // this.camera.position.z = Math.sin((2 * time + 50 * this.userZoomLevel) / oscillationTime) * 1000 + 2600;
-        this.userZoomLevel = Math.sin(time);
+
+        this.points.position.y = Math.sin(time / oscillationTime) * sweepAngle; //Math.sin(time / 20) * 5;
+        this.points.position.z = Math.sin(time / oscillationTime) * sweepAngle;
+        this.points.position.x = -Math.sin(5 + time / oscillationTime) * sweepAngle;
+
+        this.userZoomLevel = 2 * Math.sin(time);
 
         this.renderer.render(this.scene, this.camera);
     }
