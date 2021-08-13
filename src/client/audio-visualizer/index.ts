@@ -37,11 +37,12 @@ class WEBGLAudioVisualizer {
     private maxAmp = 100;
     private totalAmp = 0;
     private maxRadius = 3000;
-    private targetZHeight = 1.5;
+    private targetZHeight = 30;
 
     private sideLength: number;
 
     private particles: number;
+    private activeParticles: number;
     private particlesInCircle: number;
     private particlesRemainingInCircle: number;
     private radius: number;
@@ -54,6 +55,7 @@ class WEBGLAudioVisualizer {
     private previousTime: number;
     private integralSensitivityFactor: number;
     private totalCurrentAvgZHeight: number;
+    private netAvgZHegith: number[];
     private allTotalAvgZHeights: number[];
 
     constructor(containerDOMNodeId: string, audioSource: string) {
@@ -62,7 +64,7 @@ class WEBGLAudioVisualizer {
             this.loadAudio();
         })
 
-        
+
         this.containerDOMNode = document.getElementById(containerDOMNodeId) as Div;
         this.audioSource = audioSource;
 
@@ -93,6 +95,7 @@ class WEBGLAudioVisualizer {
         this.orbitControls.rotateSpeed = 0.1;
 
         this.particles = 100000;
+        this.activeParticles = this.particles;
         this.particlesInCircle = 0;
         this.particlesRemainingInCircle = 0;
         this.radius = 0;
@@ -104,6 +107,7 @@ class WEBGLAudioVisualizer {
         this.deltaTime = 0;
         this.integralSensitivityFactor = 1;
         this.totalCurrentAvgZHeight = 0;
+        this.netAvgZHegith = [0];
         this.allTotalAvgZHeights = [];
     }
 
@@ -153,7 +157,7 @@ class WEBGLAudioVisualizer {
             this.positions.push(x, y, z);
             color.r = 1 - clamp( this.radius / this.maxRadius - 0.3 , 0, 1);
             color.g = 0
-            color.b = clamp(this.radius / this.maxRadius ,  0, 0.5)
+            color.b = 0
             //color.setColorName('red');
             colors.push(color.r, color.g, color.b);
         }
@@ -176,15 +180,15 @@ class WEBGLAudioVisualizer {
         let centerX = 0;
         let centerY = 0;
 
-        //console.log(this.maxRadius);
-
         this.beat_multiplier = 1;
 
         let amp: number[] = [this.freqChannels];
         this.totalAmp = 0;
         this.totalCurrentAvgZHeight = 0;
+        let sumActiveZheight = 0;
         this.totalAvgVolume = 0;
-        let EWMA_average = 0;
+        let EWMA_average = 0;        
+        this.activeParticles = this.particles
         let EWMA_range = 10;
 
         for (let n = 0; n < Math.max(this.previousAvgAmp.length, this.freqChannels); n++) {
@@ -211,8 +215,10 @@ class WEBGLAudioVisualizer {
 
         if (this.totalAmp && EWMA_average) this.beat_multiplier = this.totalAmp / EWMA_average;
 
-        let autoLeveler = clamp(this.integral, -1, 1);
-        //console.log(autoLeveler);
+        let autoLeveler = clamp(this.integral, -15, 15);
+        this.integral = autoLeveler
+        //console.log(this.integral);
+
 
         //for every particle ("i" represents the index of the coordinate position : [x,y,z,x,y,z,...])
         for (let i = 0; i < this.particles * 3; i += 3) {
@@ -225,7 +231,7 @@ class WEBGLAudioVisualizer {
             let z = 0;
 
             let normalizedDistFromCenter = distFromCenter / this.maxRadius;
-            let pointFrequencyAssignemnt = normalizedDistFromCenter * this.freqChannels;
+            let pointFrequencyAssignemnt = Math.floor(normalizedDistFromCenter * this.freqChannels);
             if (pointFrequencyAssignemnt < this.freqChannels - 1) {
                 //finds which freq this point maps to
 
@@ -238,36 +244,50 @@ class WEBGLAudioVisualizer {
                    (the non-zero value that remaps the scalars to a larger range) *
                    (the volume:height associated with this particles freqency)
                */
-                z = this.beat_multiplier * this.totalAmp * this.maxAmp * amp[Math.floor(normalizedDistFromCenter * this.freqChannels)];
+                z = this.beat_multiplier * this.totalAmp * this.maxAmp * amp[pointFrequencyAssignemnt];
 
                 //then interpolation adjustment
                 z +=
-                    (this.beat_multiplier * this.totalAmp * this.maxAmp * amp[Math.floor(normalizedDistFromCenter * this.freqChannels) + 1] - z) *
+                    (this.beat_multiplier * this.totalAmp * this.maxAmp * amp[pointFrequencyAssignemnt + 1] - z) *
                     (normalizedDistFromCenter * this.freqChannels - Math.floor(normalizedDistFromCenter * this.freqChannels));
 
-                z += autoLeveler;
+                z += z * autoLeveler;
             } else {
-                z = 0;
+                //z = 
             }
 
             //radial position based height rebalancer (creates the dome shap for the vitual speaker)
-            z *= -30 * -((distFromCenter - 10) / Math.sqrt(Math.pow(distFromCenter - 10, 2) + 1000000)) + 1;
-
-
-            //z += maxEqualizerAmp * ()
-
+            z *= 30 * ((distFromCenter - 10) / Math.sqrt(Math.pow(distFromCenter - 10, 2) + 1000000));
 
             //set Z pos and clamp max / min height
             this.positions[i + 2] = clamp(z, -1000, 1000);
 
-            this.totalCurrentAvgZHeight += z / this.particles;
+            if(z < 0.5 && z > -0.5){
+                this.activeParticles --
+            }else{
+                this.activeParticles ++
+            }
+
+            sumActiveZheight += z;
         }
 
-        let error = this.targetZHeight - this.totalCurrentAvgZHeight;
-        this.integral += this.integralSensitivityFactor * error * this.deltaTime;
-        this.maxRadius = this.integral * 0.000000001;
+        if(this.activeParticles != 0 && sumActiveZheight){
 
-        //console.log(error);
+            this.totalCurrentAvgZHeight = sumActiveZheight / this.activeParticles
+
+        }
+
+        if(this.netAvgZHegith.length >= 1)
+            this.netAvgZHegith.push(this.netAvgZHegith[this.netAvgZHegith.length - 1] + this.totalCurrentAvgZHeight);
+        let grandMeanHeight = this.netAvgZHegith[this.netAvgZHegith.length - 1] / this.netAvgZHegith.length
+
+        if(Date.now() % 1000 < 3) console.log("grand mean:\n" + Math.round(grandMeanHeight) +"\ncurrentAvgHeight:\n" + Math.round(this.totalCurrentAvgZHeight))
+
+
+        let error = this.targetZHeight - grandMeanHeight;
+        this.integral += this.integralSensitivityFactor * error * this.deltaTime / 1000;
+
+        //console.log(this.totalCurrentAvgZHeight);
 
         this.geometry.setAttribute('position', new THREE.Float32BufferAttribute(this.positions, 3));
     }

@@ -2,7 +2,7 @@ import WEBGLAudioVisualizer from './audio-visualizer';
 
 function init() {
 
-    const BackgroundAnimation = new WEBGLAudioVisualizer('container', '/sounds/Jody Wisternoff - The Bridge (Chicane Rework).mp3');
+    const BackgroundAnimation = new WEBGLAudioVisualizer('container', '/sounds/UMEK - Amnesiac (Original Mix).mp3');
     
     BackgroundAnimation.createScene();
     BackgroundAnimation.animate();
