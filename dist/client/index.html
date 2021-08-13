@@ -1,66 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Three.js TypeScript Tutorials by Sean Bradley</title>
-        <style>
-            html {
-                width: 100%;
-                cursor: grab;
-            }
-            body {
-                width: 100%;
-                overflow: hidden;
-                margin: 0px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
 
-            canvas {
-                z-index: -1;
-            }
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Three.js TypeScript Tutorials by Sean Bradley</title>
+    <style>
+        html {
+            width: 100%;
+            cursor: grab;
+        }
+        
+        body {
+            width: 100%;
+            overflow: hidden;
+            margin: 0px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        canvas {
+            z-index: -1;
+        }
+        
+        #container {
+            position: absolute;
+            z-index: -1;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .upload-select {
+            width: 600px;
+            min-height: 600px;
+            max-height: 600px;
+            background: black;
+            border: 1px solid #ffffff22;
+        }
+        
+        .search-wrapper {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 0 24px;
+            background: white;
+        }
+    </style>
+</head>
 
-            #container {
-                position: absolute;
-                z-index: -1;
-                left: 0;
-                top: 0;
-                right: 0;
-                bottom: 0;
-                width: 100%;
-                height: 100%;
-            }
-
-            .upload-select {
-                width: 600px;
-                min-height: 600px;
-                max-height: 600px;
-                background: black;
-                border: 1px solid #ffffff22;
-            }
-
-            .search-wrapper {
-                display: flex;
-                align-items: center;
-                width: 100%;
-                padding: 0 24px;
-                background: white;
-            }
-        </style>
-    </head>
-
-    <body>
-        <div class="upload-select">
+<body>
+    <!-- <div class="upload-select">
             <div class="search-wrapper">
                 <img src="search-icon.svg" alt="search icon" />
                 <input type="search" />
                 <img src="clear-icon.svg" alt="clear icon" />
             </div>
-        </div>
-        <div id="player"></div>
-        <div id="container"></div>
-        <script type="module" src="bundle.js"></script>
-    </body>
+        </div> -->
+    <button id="playButton">Play</button>
+    <div id="player"></div>
+    <div id="container"></div>
+    <script type="module" src="bundle.js"></script>
+</body>
+
 </html>

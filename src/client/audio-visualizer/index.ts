@@ -4,6 +4,10 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Audio, AudioAnalyser, Clock, PerspectiveCamera, Points, PointsMaterial, Scene, WebGLRenderer } from 'three';
 
+
+const myBtn = document.getElementById("playButton");
+
+
 type Div = HTMLDivElement | null;
 class WEBGLAudioVisualizer {
     private containerDOMNode: Div;
@@ -48,6 +52,12 @@ class WEBGLAudioVisualizer {
     private allTotalAvgZHeights: number[];
 
     constructor(containerDOMNodeId: string, audioSource: string) {
+
+        myBtn?.addEventListener("click", () => {
+            this.loadAudio();
+        })
+
+
         this.containerDOMNode = document.getElementById(containerDOMNodeId) as Div;
         this.audioSource = audioSource;
 
