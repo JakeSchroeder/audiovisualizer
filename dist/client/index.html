@@ -21,11 +21,45 @@
             canvas {
                 z-index: -1;
             }
+
+            #container {
+                position: absolute;
+                z-index: -1;
+                left: 0;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            .upload-select {
+                width: 600px;
+                min-height: 600px;
+                max-height: 600px;
+                background: black;
+                border: 1px solid #ffffff22;
+            }
+
+            .search-wrapper {
+                display: flex;
+                align-items: center;
+                width: 100%;
+                padding: 0 24px;
+                background: white;
+            }
         </style>
     </head>
 
     <body>
-        <!-- <button id="playButton">Play</button> -->
+        <div class="upload-select">
+            <div class="search-wrapper">
+                <img src="search-icon.svg" alt="search icon" />
+                <input type="search" />
+                <img src="clear-icon.svg" alt="clear icon" />
+            </div>
+        </div>
+        <div id="player"></div>
         <div id="container"></div>
         <script type="module" src="bundle.js"></script>
     </body>

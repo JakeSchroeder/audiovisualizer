@@ -257,9 +257,9 @@ class WEBGLAudioVisualizer {
         this.points.rotation.x = -Math.sin(5 + time / oscillationTime) * sweepAngle;
         // this.camera.position.z = Math.sin((2 * time + 50 * this.userZoomLevel) / oscillationTime) * 1000 + 2600;
 
-        this.points.position.y = Math.sin(time / oscillationTime) * sweepAngle; //Math.sin(time / 20) * 5;
-        this.points.position.z = Math.sin(time / oscillationTime) * sweepAngle;
-        this.points.position.x = -Math.sin(5 + time / oscillationTime) * sweepAngle;
+        //this.points.position.y = Math.sin(time / oscillationTime) * sweepAngle; //Math.sin(time / 20) * 5;
+        //this.points.position.z = Math.sin(time / oscillationTime) * sweepAngle;
+        //this.points.position.x = -Math.sin(5 + time / oscillationTime) * sweepAngle;
 
         this.userZoomLevel = 2 * Math.sin(time);
 

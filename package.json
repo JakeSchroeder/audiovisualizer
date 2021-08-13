@@ -27,7 +27,6 @@
         "webpack-merge": "^5.8.0"
     },
     "dependencies": {
-        "express": "^4.17.1",
-        "youtube-dl-exec": "^1.2.4"
+        "express": "^4.17.1"
     }
 }

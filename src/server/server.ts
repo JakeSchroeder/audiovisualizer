@@ -12,7 +12,6 @@ class App {
         this.port = port;
         const app = express();
         app.use(express.static(path.join(__dirname, '../client')));
-
         this.server = new http.Server(app);
     }
 
