@@ -2,7 +2,12 @@ import { time, timeEnd } from 'console';
 import { normalize } from 'path';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { Audio, AudioAnalyser, Clock, PerspectiveCamera, Points, PointsMaterial, Scene, WebGLRenderer } from 'three';
+import { Audio, AudioAnalyser, AudioLoader, Clock, PerspectiveCamera, Points, PointsMaterial, Scene, WebGLRenderer } from 'three';
+import { threadId } from 'worker_threads';
+import { clamp } from 'three/src/math/MathUtils';
+
+const myBtn = document.getElementById("playButton");
+
 
 type Div = HTMLDivElement | null;
 class WEBGLAudioVisualizer {
@@ -37,17 +42,27 @@ class WEBGLAudioVisualizer {
     private sideLength: number;
 
     private particles: number;
+    private particlesInCircle: number;
+    private particlesRemainingInCircle: number;
+    private radius: number;
     private particleSpacing: number;
     private userZoomLevel: number;
     private freqChannels: number;
 
     private integral: number;
+    private deltaTime: number;
     private previousTime: number;
     private integralSensitivityFactor: number;
     private totalCurrentAvgZHeight: number;
     private allTotalAvgZHeights: number[];
 
     constructor(containerDOMNodeId: string, audioSource: string) {
+
+        myBtn?.addEventListener("click", () => {
+            this.loadAudio();
+        })
+
+        
         this.containerDOMNode = document.getElementById(containerDOMNodeId) as Div;
         this.audioSource = audioSource;
 
@@ -55,11 +70,11 @@ class WEBGLAudioVisualizer {
         this.renderer = new THREE.WebGLRenderer();
         this.listener = new THREE.AudioListener();
         this.sound = new THREE.Audio(this.listener);
-        this.camera = new THREE.PerspectiveCamera(27, window.innerWidth / window.innerHeight, 5, 10000);
+        this.camera = new THREE.PerspectiveCamera(27, window.innerWidth / window.innerHeight, 5, 50000);
         this.camera.position.z = 4000;
         this.scene = new Scene();
         this.scene.background = new THREE.Color(0x050505);
-        this.scene.fog = new THREE.Fog(0x050505, 8000, 9000);
+        this.scene.fog = new THREE.Fog(0x010101, 9000, 10000);
 
         this.orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
 
@@ -78,11 +93,15 @@ class WEBGLAudioVisualizer {
         this.orbitControls.rotateSpeed = 0.1;
 
         this.particles = 100000;
-        this.particleSpacing = 16;
+        this.particlesInCircle = 0;
+        this.particlesRemainingInCircle = 0;
+        this.radius = 0;
+        this.particleSpacing = 20;
         this.sideLength = Math.sqrt(this.particles);
 
         this.integral = 0;
         this.previousTime = 0;
+        this.deltaTime = 0;
         this.integralSensitivityFactor = 1;
         this.totalCurrentAvgZHeight = 0;
         this.allTotalAvgZHeights = [];
@@ -94,11 +113,11 @@ class WEBGLAudioVisualizer {
         if (this.containerDOMNode) this.containerDOMNode.appendChild(this.renderer.domElement);
         window.addEventListener('resize', this.onWindowResize.bind(this));
 
-        this.loadAudio();
+        // this.loadAudio();
         this.createParticles();
     }
 
-    private loadAudio() {
+    public loadAudio() {
         const audioLoader = new THREE.AudioLoader();
         let localSound = this.sound;
         if (localSound) {
@@ -115,22 +134,32 @@ class WEBGLAudioVisualizer {
         const colors: number[] = [];
         let color = new THREE.Color();
 
-        let offsetX = -((this.particleSpacing * this.sideLength) / 2);
-        let offsetY = -((this.particleSpacing * this.sideLength) / 2);
-
         for (let i = 0; i < this.particles; i++) {
-            const horiz_pos = i % this.sideLength;
-            const vert_pos = Math.floor(i / this.sideLength);
 
-            let x = this.particleSpacing * horiz_pos + offsetX;
-            let y = this.particleSpacing * vert_pos + offsetY;
+            if(this.particlesRemainingInCircle <= 0){
+                this.radius += this.particleSpacing;
+                let circumference = 2 * this.radius * Math.PI;
+                this.particlesInCircle = Math.round(circumference / this.particleSpacing);
+                this.particlesRemainingInCircle = this.particlesInCircle;
+            }
+            this.particlesRemainingInCircle --;
+
+            let theta = 2 * Math.PI * (this.particlesRemainingInCircle / this.particlesInCircle);
+            let x = this.radius * Math.sin(theta)
+            let y = this.radius * Math.cos(theta)
             let z = 0;
 
             //push to mesh position and color properties
             this.positions.push(x, y, z);
-            color.setColorName('red');
+            color.r = 1 - clamp( this.radius / this.maxRadius - 0.3 , 0, 1);
+            color.g = 0
+            color.b = clamp(this.radius / this.maxRadius ,  0, 0.5)
+            //color.setColorName('red');
             colors.push(color.r, color.g, color.b);
         }
+
+
+
 
         this.geometry.setAttribute('position', new THREE.Float32BufferAttribute(this.positions, 3));
         this.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
@@ -142,7 +171,7 @@ class WEBGLAudioVisualizer {
 
     private showParticles() {
         const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
-        let deltaTime = Date.now() - this.previousTime;
+        this.deltaTime = Date.now() - this.previousTime;
         this.previousTime = Date.now();
         let centerX = 0;
         let centerY = 0;
@@ -216,13 +245,17 @@ class WEBGLAudioVisualizer {
                     (this.beat_multiplier * this.totalAmp * this.maxAmp * amp[Math.floor(normalizedDistFromCenter * this.freqChannels) + 1] - z) *
                     (normalizedDistFromCenter * this.freqChannels - Math.floor(normalizedDistFromCenter * this.freqChannels));
 
-                z += z * autoLeveler;
+                z += autoLeveler;
             } else {
                 z = 0;
             }
 
             //radial position based height rebalancer (creates the dome shap for the vitual speaker)
             z *= -30 * -((distFromCenter - 10) / Math.sqrt(Math.pow(distFromCenter - 10, 2) + 1000000)) + 1;
+
+
+            //z += maxEqualizerAmp * ()
+
 
             //set Z pos and clamp max / min height
             this.positions[i + 2] = clamp(z, -1000, 1000);
@@ -231,7 +264,7 @@ class WEBGLAudioVisualizer {
         }
 
         let error = this.targetZHeight - this.totalCurrentAvgZHeight;
-        this.integral += this.integralSensitivityFactor * error * deltaTime;
+        this.integral += this.integralSensitivityFactor * error * this.deltaTime;
         this.maxRadius = this.integral * 0.000000001;
 
         //console.log(error);
@@ -252,10 +285,17 @@ class WEBGLAudioVisualizer {
         let oscillationTime = 10;
         let sweepAngle = 1;
 
-        this.points.rotation.y = Math.sin(time / oscillationTime) * sweepAngle; //Math.sin(time / 20) * 5;
-        this.points.rotation.z = Math.sin(time / oscillationTime) * sweepAngle;
-        this.points.rotation.x = -Math.sin(5 + time / oscillationTime) * sweepAngle;
+        // this.points.rotation.y = Math.sin(time / oscillationTime) * sweepAngle; //Math.sin(time / 20) * 5;
+        // this.points.rotation.z = Math.sin(time / oscillationTime) * sweepAngle;
+        // this.points.rotation.x = -Math.sin(5 + time / oscillationTime) * sweepAngle;
         // this.camera.position.z = Math.sin((2 * time + 50 * this.userZoomLevel) / oscillationTime) * 1000 + 2600;
+
+        let cameraZoom = 5000
+        this.camera.position.z = 6000 - (2000 * (Math.sin(time / 3)+1))
+        this.camera.position.x = Math.sin(time) * cameraZoom;
+        this.camera.position.y = Math.cos(time) * cameraZoom;
+        this.camera.lookAt(new THREE.Vector3(1000 *Math.sin(time),1000 *Math.cos(time),700))
+        this.camera.up = new THREE.Vector3(0,0,1)
 
         //this.points.position.y = Math.sin(time / oscillationTime) * sweepAngle; //Math.sin(time / 20) * 5;
         //this.points.position.z = Math.sin(time / oscillationTime) * sweepAngle;

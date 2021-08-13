@@ -1,6 +1,11 @@
 import WEBGLAudioVisualizer from './audio-visualizer';
 
-const BackgroundAnimation = new WEBGLAudioVisualizer('container', '/sounds/Marsh feat. Leo Wood - My stripes (Braxton & Marsh Remix).mp3');
+function init() {
 
-BackgroundAnimation.createScene();
-BackgroundAnimation.animate();
+    const BackgroundAnimation = new WEBGLAudioVisualizer('container', '/sounds/Jody Wisternoff - The Bridge (Chicane Rework).mp3');
+    
+    BackgroundAnimation.createScene();
+    BackgroundAnimation.animate();
+}
+
+window.addEventListener("DOMContentLoaded", init)
