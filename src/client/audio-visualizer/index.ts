@@ -3,6 +3,8 @@ import { normalize } from 'path';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Audio, AudioAnalyser, Clock, PerspectiveCamera, Points, PointsMaterial, Scene, WebGLRenderer } from 'three';
+import { clamp } from 'three/src/math/MathUtils';
+import { totalmem } from 'os';
 
 
 const myBtn = document.getElementById("playButton");
@@ -31,14 +33,17 @@ class WEBGLAudioVisualizer {
     private soundData: Uint8Array;
     private previousAvgAmp: number[];
     private totalAvgVolume = 0;
-    private beat_multiplier = 0;
+    private beat_multiplier = 1;
 
     private maxAmp = 100;
+    private totalMaxZheight = 0;
     private totalAmp = 0;
     private maxRadius = 3000;
     private targetZHeight = 1.5;
 
     private sideLength: number;
+
+    private equalizer: number = 1000;
 
     private particles: number;
     private particleSpacing: number;
@@ -150,8 +155,19 @@ class WEBGLAudioVisualizer {
         this.scene.add(this.points);
     }
 
+    private scale (number: number, inMin: number, inMax: number, outMin: number, outMax: number) {
+        let scaledValue = ( (number - inMin) / (inMax - inMin) ) * (outMax - outMin) + outMin
+        scaledValue = clamp(scaledValue , outMin, outMax);
+        if( scaledValue ){
+            return scaledValue
+        }else{
+            return 0
+        }
+    }
+
     private showParticles() {
         const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
+        
         let deltaTime = Date.now() - this.previousTime;
         this.previousTime = Date.now();
         let centerX = 0;
@@ -159,14 +175,13 @@ class WEBGLAudioVisualizer {
 
         //console.log(this.maxRadius);
 
-        this.beat_multiplier = 1;
-
         let amp: number[] = [this.freqChannels];
         this.totalAmp = 0;
         this.totalCurrentAvgZHeight = 0;
+        let totalCurrentMaxHeight = 0;
         this.totalAvgVolume = 0;
         let EWMA_average = 0;
-        let EWMA_range = 10;
+        let EWMA_range = 20;
 
         for (let n = 0; n < Math.max(this.previousAvgAmp.length, this.freqChannels); n++) {
             //averages the last 10 frames of avg volume data (normalized gaussian distribution)
@@ -226,7 +241,7 @@ class WEBGLAudioVisualizer {
                     (this.beat_multiplier * this.totalAmp * this.maxAmp * amp[Math.floor(normalizedDistFromCenter * this.freqChannels) + 1] - z) *
                     (normalizedDistFromCenter * this.freqChannels - Math.floor(normalizedDistFromCenter * this.freqChannels));
 
-                z += z * autoLeveler;
+                //z += z * autoLeveler;
             } else {
                 z = 0;
             }
@@ -234,17 +249,44 @@ class WEBGLAudioVisualizer {
             //radial position based height rebalancer (creates the dome shap for the vitual speaker)
             z *= -30 * -((distFromCenter - 10) / Math.sqrt(Math.pow(distFromCenter - 10, 2) + 1000000)) + 1;
 
+            z = clamp(z,-1000,1000)
+
+            z = this.scale(z,0,500,0, this.equalizer)
+
             //set Z pos and clamp max / min height
-            this.positions[i + 2] = clamp(z, -1000, 1000);
+            this.positions[i + 2] = z;
 
             this.totalCurrentAvgZHeight += z / this.particles;
+
+            
+            totalCurrentMaxHeight = Math.max(totalCurrentMaxHeight, z)
+            if(totalCurrentMaxHeight > this.totalMaxZheight)
+            {
+                this.totalMaxZheight += 1
+            }else{
+                this.totalMaxZheight -= 1
+            }
+               
+            
         }
+
+        if(this.totalMaxZheight != 0){
+            if( totalCurrentMaxHeight <= 100 ){
+                this.maxRadius += 100
+                this.equalizer += 50// *totalCurrentMaxHeight / this.totalMaxZheight//(1.2 * this.totalMaxZheight) * (deltaTime / 1000)
+            }else{
+                this.maxRadius -= 100
+                this.equalizer -= 50// * totalCurrentMaxHeight / this.totalMaxZheight//(0.1 * this.totalMaxZheight) 
+            }
+        }
+
+        console.log(Math.round(this.maxRadius));
+        
+
 
         let error = this.targetZHeight - this.totalCurrentAvgZHeight;
         this.integral += this.integralSensitivityFactor * error * deltaTime;
-        this.maxRadius = this.integral * 0.000000001;
 
-        //console.log(error);
 
         this.geometry.setAttribute('position', new THREE.Float32BufferAttribute(this.positions, 3));
     }
