@@ -58,18 +58,21 @@ class WEBGLAudioVisualizer {
 
     constructor(containerDOMNodeId: string, audioSource: string) {
 
+        
+        this.audioSource = audioSource;
+        this.listener = new THREE.AudioListener();
+        this.sound = new THREE.Audio(this.listener);
+
         myBtn?.addEventListener("click", () => {
             this.loadAudio();
         })
 
 
         this.containerDOMNode = document.getElementById(containerDOMNodeId) as Div;
-        this.audioSource = audioSource;
+        
 
         this.startTime = Date.now();
         this.renderer = new THREE.WebGLRenderer();
-        this.listener = new THREE.AudioListener();
-        this.sound = new THREE.Audio(this.listener);
         this.camera = new THREE.PerspectiveCamera(27, window.innerWidth / window.innerHeight, 5, 10000);
         this.camera.position.z = 4000;
         this.scene = new Scene();
@@ -109,7 +112,7 @@ class WEBGLAudioVisualizer {
         if (this.containerDOMNode) this.containerDOMNode.appendChild(this.renderer.domElement);
         window.addEventListener('resize', this.onWindowResize.bind(this));
 
-        this.loadAudio();
+        //this.loadAudio();
         this.createParticles();
     }
 
@@ -271,16 +274,16 @@ class WEBGLAudioVisualizer {
         }
 
         if(this.totalMaxZheight != 0){
-            if( totalCurrentMaxHeight <= 100 ){
-                this.maxRadius += 100
-                this.equalizer += 50// *totalCurrentMaxHeight / this.totalMaxZheight//(1.2 * this.totalMaxZheight) * (deltaTime / 1000)
+            if( totalCurrentMaxHeight <= 200 ){
+                this.maxRadius += 10 * totalCurrentMaxHeight / this.totalMaxZheight
+                this.equalizer += 10 * totalCurrentMaxHeight / this.totalMaxZheight//(1.2 * this.totalMaxZheight) * (deltaTime / 1000)
             }else{
-                this.maxRadius -= 100
-                this.equalizer -= 50// * totalCurrentMaxHeight / this.totalMaxZheight//(0.1 * this.totalMaxZheight) 
+                this.maxRadius -= 10 * totalCurrentMaxHeight / this.totalMaxZheight
+                this.equalizer -= 10 * totalCurrentMaxHeight / this.totalMaxZheight//(0.1 * this.totalMaxZheight) 
             }
         }
 
-        console.log(Math.round(this.maxRadius));
+        console.log(Math.round(this.equalizer));
         
 
 
