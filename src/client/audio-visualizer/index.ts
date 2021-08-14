@@ -193,6 +193,7 @@ class WEBGLAudioVisualizer {
         let amp: number[] = [this.freqChannels];
         this.totalAmp = 0;
         this.totalCurrentAvgZHeight = 0;
+        let averageZHeightRunningSum = 0;
         let totalCurrentMaxHeight = 0;
         this.totalAvgVolume = 0;
         let EWMA_average = 0;
@@ -253,7 +254,7 @@ class WEBGLAudioVisualizer {
                     (this.beat_multiplier * this.totalAmp * this.maxAmp * amp[pointFrequencyAssignemnt + 1] - z) *
                     (normalizedDistFromCenter * this.freqChannels - pointFrequencyAssignemnt);
 
-                z += 0.05 * z * z
+                z += (z * z) * this.totalCurrentAvgZHeight
             } else {
                 z = 0;
             }
@@ -264,7 +265,7 @@ class WEBGLAudioVisualizer {
 
             z = clamp(z,-3000,3000)
 
-            z = this.scale(z,0,800,0, this.equalizer)
+            z = this.scale(z,0,1000,0, this.equalizer)
 
 
             if(distFromCenter/this.maxRadius < 0.07 && z != 0){
@@ -272,8 +273,7 @@ class WEBGLAudioVisualizer {
 
             }
             
-
-            this.totalCurrentAvgZHeight += z / this.particles;
+            averageZHeightRunningSum += z;
 
             totalCurrentMaxHeight = Math.max(totalCurrentMaxHeight, z)
 
@@ -288,6 +288,7 @@ class WEBGLAudioVisualizer {
             this.positions[i + 2] = z;
             
         }
+        this.totalCurrentAvgZHeight = averageZHeightRunningSum / this.particles
 
         if(this.totalMaxZheight != 0){
             if( totalCurrentMaxHeight <= this.targetZHeight ){
