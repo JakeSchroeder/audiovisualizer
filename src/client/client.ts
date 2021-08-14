@@ -1,6 +1,6 @@
 import WEBGLAudioVisualizer from './audio-visualizer';
 
-const BackgroundAnimation = new WEBGLAudioVisualizer('container', '/sounds/Jody Wisternoff - The Bridge (Chicane Rework).mp3');
+const BackgroundAnimation = new WEBGLAudioVisualizer('container', '/sounds/Clubbed to Death (Kurayamino Variation).mp3');
 
 BackgroundAnimation.createScene();
 BackgroundAnimation.animate();

@@ -223,13 +223,10 @@ class WEBGLAudioVisualizer {
 
             let z = 0;
 
-            let normalizedDistFromCenter = distFromCenter / this.maxRadius;
-            let pointFrequencyAssignemnt = normalizedDistFromCenter * this.freqChannels;
+            let normalizedDistFromCenter = clamp(distFromCenter / this.maxRadius, 0, 1);
+            let pointFrequencyAssignemnt = Math.floor(normalizedDistFromCenter * this.freqChannels);
             if (pointFrequencyAssignemnt < this.freqChannels - 1) {
                 //finds which freq this point maps to
-
-                //points beyond the radius are not influenced by the spectrograph volumes
-                if (normalizedDistFromCenter > 1) normalizedDistFromCenter = 1;
 
                 /* (ratio of current frame average volume to the past (1 to 40 frames') average volume) * 
                    (normalized avg volume of current frame) *
@@ -237,12 +234,12 @@ class WEBGLAudioVisualizer {
                    (the non-zero value that remaps the scalars to a larger range) *
                    (the volume:height associated with this particles freqency)
                */
-                z = this.beat_multiplier * this.totalAmp * this.maxAmp * amp[Math.floor(normalizedDistFromCenter * this.freqChannels)];
+                z = this.beat_multiplier * this.totalAmp * this.maxAmp * amp[pointFrequencyAssignemnt];
                 
                 //then interpolation adjustment
                 z +=
-                    (this.beat_multiplier * this.totalAmp * this.maxAmp * amp[Math.floor(normalizedDistFromCenter * this.freqChannels) + 1] - z) *
-                    (normalizedDistFromCenter * this.freqChannels - Math.floor(normalizedDistFromCenter * this.freqChannels));
+                    (this.beat_multiplier * this.totalAmp * this.maxAmp * amp[pointFrequencyAssignemnt + 1] - z) *
+                    (normalizedDistFromCenter * this.freqChannels - pointFrequencyAssignemnt);
 
                 //z += z * autoLeveler;
             } else {
@@ -251,15 +248,15 @@ class WEBGLAudioVisualizer {
 
             //radial position based height rebalancer (creates the dome shap for the vitual speaker)
             //z *= 30 * ((distFromCenter - 10) / Math.sqrt(Math.pow(distFromCenter - 10, 2) + 1000000)) + 1;
-            z *= 10* ( distFromCenter / this.maxRadius)
+            z *= 10  * ( distFromCenter / this.maxRadius)
 
             z = clamp(z,-3000,3000)
 
             z = this.scale(z,0,800,0, this.equalizer)
 
 
-            if(distFromCenter/this.maxRadius < 0.05 && z != 0){
-                z = (80 - 80 * Math.pow(distFromCenter/this.maxRadius/ 0.05, 2) ) 
+            if(distFromCenter/this.maxRadius < 0.07 && z != 0){
+                z = (80 - 80 * Math.pow(distFromCenter/this.maxRadius/ 0.07, 2) ) 
 
             }
             
