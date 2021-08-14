@@ -105,7 +105,7 @@ class WEBGLAudioVisualizer {
         this.integral = 0;
         this.previousTime = 0;
         this.deltaTime = 0;
-        this.integralSensitivityFactor = 1;
+        this.integralSensitivityFactor = .4;
         this.totalCurrentAvgZHeight = 0;
         this.netAvgZHegith = [0];
         this.allTotalAvgZHeights = [];
@@ -251,13 +251,13 @@ class WEBGLAudioVisualizer {
                     (this.beat_multiplier * this.totalAmp * this.maxAmp * amp[pointFrequencyAssignemnt + 1] - z) *
                     (normalizedDistFromCenter * this.freqChannels - Math.floor(normalizedDistFromCenter * this.freqChannels));
 
-                z += z * autoLeveler;
+                z += 0.05 * z * z// autoLeveler;
             } else {
                 //z = 
             }
 
             //radial position based height rebalancer (creates the dome shap for the vitual speaker)
-            z *= 30 * ((distFromCenter - 10) / Math.sqrt(Math.pow(distFromCenter - 10, 2) + 1000000));
+            z *= 10 * ((distFromCenter - 10) / Math.sqrt(Math.pow(distFromCenter - 10, 2) + 1000000));
 
             //set Z pos and clamp max / min height
             this.positions[i + 2] = clamp(z, -1000, 1000);
