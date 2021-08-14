@@ -35,6 +35,11 @@ class WEBGLAudioVisualizer {
     private totalAvgVolume = 0;
     private beat_multiplier = 1;
 
+    private particlesRemainingInCircle = 0;
+    private radius = 0;
+    private particlesInCircle = 0;
+
+
     private maxAmp = 100;
     private totalMaxZheight = 0;
     private totalAmp = 0;
@@ -133,20 +138,27 @@ class WEBGLAudioVisualizer {
         const colors: number[] = [];
         let color = new THREE.Color();
 
-        let offsetX = -((this.particleSpacing * this.sideLength) / 2);
-        let offsetY = -((this.particleSpacing * this.sideLength) / 2);
-
         for (let i = 0; i < this.particles; i++) {
-            const horiz_pos = i % this.sideLength;
-            const vert_pos = Math.floor(i / this.sideLength);
 
-            let x = this.particleSpacing * horiz_pos + offsetX;
-            let y = this.particleSpacing * vert_pos + offsetY;
+            if(this.particlesRemainingInCircle <= 0){
+                this.radius += this.particleSpacing;
+                let circumference = 2 * this.radius * Math.PI;
+                this.particlesInCircle = Math.round(circumference / this.particleSpacing);
+                this.particlesRemainingInCircle = this.particlesInCircle;
+            }
+            this.particlesRemainingInCircle --;
+
+            let theta = 2 * Math.PI * (this.particlesRemainingInCircle / this.particlesInCircle);
+            let x = this.radius * Math.sin(theta)
+            let y = this.radius * Math.cos(theta)
             let z = 0;
 
             //push to mesh position and color properties
             this.positions.push(x, y, z);
-            color.setColorName('red');
+            color.r = 1 - clamp( this.radius / this.maxRadius - 0.3 , 0, 1);
+            color.g = 0
+            color.b = 0
+            //color.setColorName('red');
             colors.push(color.r, color.g, color.b);
         }
 
