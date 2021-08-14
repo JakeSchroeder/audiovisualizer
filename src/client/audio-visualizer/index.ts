@@ -6,9 +6,7 @@ import { Audio, AudioAnalyser, Clock, PerspectiveCamera, Points, PointsMaterial,
 import { clamp } from 'three/src/math/MathUtils';
 import { totalmem } from 'os';
 
-
-const myBtn = document.getElementById("playButton");
-
+const myBtn = document.getElementById('playButton');
 
 type Div = HTMLDivElement | null;
 class WEBGLAudioVisualizer {
@@ -39,7 +37,6 @@ class WEBGLAudioVisualizer {
     private radius = 0;
     private particlesInCircle = 0;
 
-
     private maxAmp = 100;
     private totalMaxZheight = 0;
     private totalAmp = 0;
@@ -62,19 +59,15 @@ class WEBGLAudioVisualizer {
     private allTotalAvgZHeights: number[];
 
     constructor(containerDOMNodeId: string, audioSource: string) {
-
-        
         this.audioSource = audioSource;
         this.listener = new THREE.AudioListener();
         this.sound = new THREE.Audio(this.listener);
 
-        myBtn?.addEventListener("click", () => {
+        myBtn?.addEventListener('click', () => {
             this.loadAudio();
-        })
-
+        });
 
         this.containerDOMNode = document.getElementById(containerDOMNodeId) as Div;
-        
 
         this.startTime = Date.now();
         this.renderer = new THREE.WebGLRenderer();
@@ -139,25 +132,24 @@ class WEBGLAudioVisualizer {
         let color = new THREE.Color();
 
         for (let i = 0; i < this.particles; i++) {
-
-            if(this.particlesRemainingInCircle <= 0){
+            if (this.particlesRemainingInCircle <= 0) {
                 this.radius += this.particleSpacing;
                 let circumference = 2 * this.radius * Math.PI;
                 this.particlesInCircle = Math.round(circumference / this.particleSpacing);
                 this.particlesRemainingInCircle = this.particlesInCircle;
             }
-            this.particlesRemainingInCircle --;
+            this.particlesRemainingInCircle--;
 
             let theta = 2 * Math.PI * (this.particlesRemainingInCircle / this.particlesInCircle);
-            let x = this.radius * Math.sin(theta)
-            let y = this.radius * Math.cos(theta)
+            let x = this.radius * Math.sin(theta);
+            let y = this.radius * Math.cos(theta);
             let z = 0;
 
             //push to mesh position and color properties
             this.positions.push(x, y, z);
-            color.r = 1 - clamp( this.radius / this.maxRadius - 0.3 , 0, 1);
-            color.g = 0
-            color.b = 0
+            color.r = 1 - clamp(this.radius / this.maxRadius - 0.3, 0, 1);
+            color.g = 0;
+            color.b = 0;
             //color.setColorName('red');
             colors.push(color.r, color.g, color.b);
         }
@@ -170,19 +162,19 @@ class WEBGLAudioVisualizer {
         this.scene.add(this.points);
     }
 
-    private scale (number: number, inMin: number, inMax: number, outMin: number, outMax: number) {
-        let scaledValue = ( (number - inMin) / (inMax - inMin) ) * (outMax - outMin) + outMin
-        scaledValue = clamp(scaledValue , outMin, outMax);
-        if( scaledValue ){
-            return scaledValue
-        }else{
-            return 0
+    private scale(number: number, inMin: number, inMax: number, outMin: number, outMax: number) {
+        let scaledValue = ((number - inMin) / (inMax - inMin)) * (outMax - outMin) + outMin;
+        scaledValue = clamp(scaledValue, outMin, outMax);
+        if (scaledValue) {
+            return scaledValue;
+        } else {
+            return 0;
         }
     }
 
     private showParticles() {
         const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
-        
+
         let deltaTime = Date.now() - this.previousTime;
         this.previousTime = Date.now();
         let centerX = 0;
@@ -248,66 +240,57 @@ class WEBGLAudioVisualizer {
                    (the volume:height associated with this particles freqency)
                */
                 z = this.beat_multiplier * this.totalAmp * this.maxAmp * amp[pointFrequencyAssignemnt];
-                
-                //then interpolation adjustment
-                z +=
-                    (this.beat_multiplier * this.totalAmp * this.maxAmp * amp[pointFrequencyAssignemnt + 1] - z) *
-                    (normalizedDistFromCenter * this.freqChannels - pointFrequencyAssignemnt);
 
-                z += (z * z) * this.totalCurrentAvgZHeight
+                //then interpolation adjustment
+                z += (this.beat_multiplier * this.totalAmp * this.maxAmp * amp[pointFrequencyAssignemnt + 1] - z) * (normalizedDistFromCenter * this.freqChannels - pointFrequencyAssignemnt);
             } else {
                 z = 0;
             }
 
             //radial position based height rebalancer (creates the dome shap for the vitual speaker)
             //z *= 30 * ((distFromCenter - 10) / Math.sqrt(Math.pow(distFromCenter - 10, 2) + 1000000)) + 1;
-            z *= 10  * ( distFromCenter / this.maxRadius)
+            z *= 10 * (distFromCenter / this.maxRadius);
 
-            z = clamp(z,-3000,3000)
+            z = clamp(z, -3000, 3000);
 
-            z = this.scale(z,0,1000,0, this.equalizer)
+            z = this.scale(z, 0, 1000, 0, this.equalizer);
 
+            z += 0.5 * Math.pow(Math.abs(z - this.totalCurrentAvgZHeight), 2); //10 * (z - this.totalCurrentAvgZHeight) * amp[pointFrequencyAssignemnt];
 
-            if(distFromCenter/this.maxRadius < 0.07 && z != 0){
-                z = (80 - 80 * Math.pow(distFromCenter/this.maxRadius/ 0.07, 2) ) 
-
+            if (distFromCenter / this.maxRadius < 0.07 && z != 0) {
+                z = 80 - 80 * Math.pow(distFromCenter / this.maxRadius / 0.07, 2);
             }
-            
-            averageZHeightRunningSum += z;
 
-            totalCurrentMaxHeight = Math.max(totalCurrentMaxHeight, z)
+            if (z > 1) averageZHeightRunningSum += z;
 
-            if(totalCurrentMaxHeight > this.totalMaxZheight)
-            {
-                this.totalMaxZheight += 1
-            }else{
-                this.totalMaxZheight -= 1
+            totalCurrentMaxHeight = Math.max(totalCurrentMaxHeight, z);
+
+            if (totalCurrentMaxHeight > this.totalMaxZheight) {
+                this.totalMaxZheight += 1;
+            } else {
+                this.totalMaxZheight -= 1;
             }
-    
+
             //set Z pos and clamp max / min height
             this.positions[i + 2] = z;
-            
         }
-        this.totalCurrentAvgZHeight = averageZHeightRunningSum / this.particles
+        this.totalCurrentAvgZHeight = averageZHeightRunningSum / this.particles;
 
-        if(this.totalMaxZheight != 0){
-            if( totalCurrentMaxHeight <= this.targetZHeight ){
-                this.maxRadius +=  0.1 * Math.abs(this.targetZHeight - this.totalMaxZheight) //* (this.targetZHeight - this.totalMaxZheight)
-                this.equalizer += 1 * Math.abs(this.targetZHeight - this.totalMaxZheight) //* (this.targetZHeight - this.totalMaxZheight) //(1.2 * this.totalMaxZheight) * (deltaTime / 1000)
-            }else{
-                this.maxRadius -= 0.1 * Math.abs(this.totalMaxZheight - this.targetZHeight)  //* (this.targetZHeight - this.totalMaxZheight)
-                this.equalizer -= 1 * Math.abs(this.totalMaxZheight - this.targetZHeight) //* (this.targetZHeight - this.totalMaxZheight) //(0.1 * this.totalMaxZheight) 
+        if (this.totalMaxZheight != 0) {
+            if (totalCurrentMaxHeight <= this.targetZHeight) {
+                this.maxRadius += 0.1 * Math.abs(this.targetZHeight - this.totalMaxZheight); //* (this.targetZHeight - this.totalMaxZheight)
+                this.equalizer += 1 * Math.abs(this.targetZHeight - this.totalMaxZheight); //* (this.targetZHeight - this.totalMaxZheight) //(1.2 * this.totalMaxZheight) * (deltaTime / 1000)
+            } else {
+                this.maxRadius -= 0.1 * Math.abs(this.totalMaxZheight - this.targetZHeight); //* (this.targetZHeight - this.totalMaxZheight)
+                this.equalizer -= 1 * Math.abs(this.totalMaxZheight - this.targetZHeight); //* (this.targetZHeight - this.totalMaxZheight) //(0.1 * this.totalMaxZheight)
             }
         }
 
-        let debug = [Math.round(this.totalMaxZheight) , Math.round(this.equalizer)]
+        let debug = [Math.round(this.totalMaxZheight), Math.round(this.equalizer)];
         console.log(debug);
-        
-
 
         let error = this.targetZHeight - this.totalCurrentAvgZHeight;
         this.integral += this.integralSensitivityFactor * error * deltaTime;
-
 
         this.geometry.setAttribute('position', new THREE.Float32BufferAttribute(this.positions, 3));
     }
