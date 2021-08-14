@@ -253,7 +253,7 @@ class WEBGLAudioVisualizer {
                     (this.beat_multiplier * this.totalAmp * this.maxAmp * amp[pointFrequencyAssignemnt + 1] - z) *
                     (normalizedDistFromCenter * this.freqChannels - pointFrequencyAssignemnt);
 
-                //z += z * autoLeveler;
+                z += 0.05 * z * z
             } else {
                 z = 0;
             }
