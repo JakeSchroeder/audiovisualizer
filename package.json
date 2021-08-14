@@ -27,6 +27,7 @@
         "webpack-merge": "^5.8.0"
     },
     "dependencies": {
+        "@types/dropzone": "^5.7.4",
         "express": "^4.17.1"
     }
 }
