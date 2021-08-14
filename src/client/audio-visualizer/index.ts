@@ -38,8 +38,8 @@ class WEBGLAudioVisualizer {
     private maxAmp = 100;
     private totalMaxZheight = 0;
     private totalAmp = 0;
-    private maxRadius = 3000;
-    private targetZHeight = 1.5;
+    private maxRadius = 2000;
+    private targetZHeight = 200;
 
     private sideLength: number;
 
@@ -238,7 +238,7 @@ class WEBGLAudioVisualizer {
                    (the volume:height associated with this particles freqency)
                */
                 z = this.beat_multiplier * this.totalAmp * this.maxAmp * amp[Math.floor(normalizedDistFromCenter * this.freqChannels)];
-
+                
                 //then interpolation adjustment
                 z +=
                     (this.beat_multiplier * this.totalAmp * this.maxAmp * amp[Math.floor(normalizedDistFromCenter * this.freqChannels) + 1] - z) *
@@ -250,40 +250,48 @@ class WEBGLAudioVisualizer {
             }
 
             //radial position based height rebalancer (creates the dome shap for the vitual speaker)
-            z *= -30 * -((distFromCenter - 10) / Math.sqrt(Math.pow(distFromCenter - 10, 2) + 1000000)) + 1;
+            //z *= 30 * ((distFromCenter - 10) / Math.sqrt(Math.pow(distFromCenter - 10, 2) + 1000000)) + 1;
+            z *= 10* ( distFromCenter / this.maxRadius)
 
-            z = clamp(z,-1000,1000)
+            z = clamp(z,-3000,3000)
 
-            z = this.scale(z,0,500,0, this.equalizer)
+            z = this.scale(z,0,800,0, this.equalizer)
 
-            //set Z pos and clamp max / min height
-            this.positions[i + 2] = z;
+
+            if(distFromCenter/this.maxRadius < 0.05 && z != 0){
+                z = (80 - 80 * Math.pow(distFromCenter/this.maxRadius/ 0.05, 2) ) 
+
+            }
+            
 
             this.totalCurrentAvgZHeight += z / this.particles;
 
-            
             totalCurrentMaxHeight = Math.max(totalCurrentMaxHeight, z)
+
             if(totalCurrentMaxHeight > this.totalMaxZheight)
             {
                 this.totalMaxZheight += 1
             }else{
                 this.totalMaxZheight -= 1
             }
-               
+    
+            //set Z pos and clamp max / min height
+            this.positions[i + 2] = z;
             
         }
 
         if(this.totalMaxZheight != 0){
-            if( totalCurrentMaxHeight <= 200 ){
-                this.maxRadius += 10 * totalCurrentMaxHeight / this.totalMaxZheight
-                this.equalizer += 10 * totalCurrentMaxHeight / this.totalMaxZheight//(1.2 * this.totalMaxZheight) * (deltaTime / 1000)
+            if( totalCurrentMaxHeight <= this.targetZHeight ){
+                this.maxRadius +=  0.1 * Math.abs(this.targetZHeight - this.totalMaxZheight) //* (this.targetZHeight - this.totalMaxZheight)
+                this.equalizer += 1 * Math.abs(this.targetZHeight - this.totalMaxZheight) //* (this.targetZHeight - this.totalMaxZheight) //(1.2 * this.totalMaxZheight) * (deltaTime / 1000)
             }else{
-                this.maxRadius -= 10 * totalCurrentMaxHeight / this.totalMaxZheight
-                this.equalizer -= 10 * totalCurrentMaxHeight / this.totalMaxZheight//(0.1 * this.totalMaxZheight) 
+                this.maxRadius -= 0.1 * Math.abs(this.totalMaxZheight - this.targetZHeight)  //* (this.targetZHeight - this.totalMaxZheight)
+                this.equalizer -= 1 * Math.abs(this.totalMaxZheight - this.targetZHeight) //* (this.targetZHeight - this.totalMaxZheight) //(0.1 * this.totalMaxZheight) 
             }
         }
 
-        console.log(Math.round(this.equalizer));
+        let debug = [Math.round(this.totalMaxZheight) , Math.round(this.equalizer)]
+        console.log(debug);
         
 
 
