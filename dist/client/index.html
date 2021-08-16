@@ -9,27 +9,71 @@
         <link rel="stylesheet" href="/styles/components.css" />
     </head>
 
-    <body id="body">
-        <div id="dragFileToUploadNode" class="upload-select">
-            <div class="search">
-                <img class="icon icon-search" width="24px" height="24px" src="/images/search.svg" alt="search icon" />
-                <input type="search" id="searchSongInput" placeholder="Upload songs to filter" />
-                <img class="icon icon-clear" src="/images/clear.svg" alt="clear icon" />
+    <body class="f dc js">
+        <header class="container container-f f ac js">
+            <div class="left">
+                <ul class="header-list f">
+                    <li>File</li>
+                    <li>Edit</li>
+                </ul>
             </div>
-            <div class="songlist">
-                <div class="folder center col">
-                    <div class="folder-wrapper" id="folderWrapperNode"></div>
-                    <p class="bodyText">Drag & Drop your .mp3 files here</p>
-                </div>
-                <ul id="songlistNode" class="songlist-list">
-                    <li class="songlist-item">
-                        <img src="" alt="album cover" />
+            <div class="center">MagmaBass</div>
+            <div class="right">
+                <ul class="header-list">
+                    <li>
+                        <!--    <img class="profile-avatar" src="#" alt="profile avatar" /> -->
+                        <span>Jake Schroeder</span>
                     </li>
                 </ul>
             </div>
+        </header>
+        <div class="main">
+            <div class="container">
+                <div class="f dc js">
+                    <div class="search-wrapper f ac">
+                        <img width="24px" height="24px" class="search-icon" src="/images/search.svg" alt="search icon" />
+                        <input placeholder="Search songs, artists, and playlists" type="text" id="searchMp3CollectionInputNode" class="search h3" />
+                    </div>
+                </div>
+            </div>
         </div>
-        <div id="player"></div>
-        <div id="container"></div>
+        <div class="player">
+            <div class="f">
+                <div class="f ac">
+                    <img width="120px" height="120px" class="album-image" src="/images/no-album.png" alt="no album cover image" />
+                    <div class="album-text f dc as">
+                        <span class="h3">Nothing to say</span>
+                        <span class="p">Aphex Man</span>
+                    </div>
+                </div>
+
+                <div class="player-center f dc jc">
+                    <div class="f ac">
+                        <img width="24px" height="18px" src="/images/skipBack.svg" class="skipprev-image" alt="skipprev image" />
+                        <img width="48px" height="48px" src="/images/play.svg" class="play-image" alt="play image" />
+                        <img width="24px" height="18px" src="/images/skipForward.svg" class="skipnext-image" alt="skipnext image" />
+                    </div>
+                    <div class="progress-wrapper f ac js">
+                        <span class="p timeLeft">0:00</span>
+                        <progress class="track-progress" id="trackProgessNode" value="0" max="100"></progress>
+                        <span class="p timeLeft">0:00</span>
+                    </div>
+                </div>
+                <div class="sound-wrapper">
+                    <img src="/images/volume.svg" />
+                    <progress value="70" id="volumeControlNode" class="sound-progress" max="100"></progress>
+                </div>
+            </div>
+        </div>
+        <div id="audioVisualizerDisplayNode" class="bgAnimation"></div>
         <script type="module" src="bundle.js"></script>
     </body>
 </html>
+
+<!-- 
+<div class="folder center col">
+    <div class="folder-wrapper" id="folderWrapperNode">
+        <img id="folderImageNode" class="folder-image" src="/images/folder-closed.svg" alt="folder closed icon" />
+    </div>
+    <p class="bodyText">Drag & Drop your .mp3 files here</p>
+</div> -->
