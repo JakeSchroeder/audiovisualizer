@@ -1,6 +1,6 @@
 import WEBGLAudioVisualizer from './audio-visualizer';
 
-const BackgroundAnimation = new WEBGLAudioVisualizer('container', '/sounds/Pirates of the Caribbean - He\'s a Pirate (Extended).mp3');
+const BackgroundAnimation = new WEBGLAudioVisualizer('container', '/sounds/Bassnectar - Timestretch (Official).mp3');
 
 BackgroundAnimation.createScene();
 BackgroundAnimation.animate();
