@@ -394,10 +394,8 @@ class WEBGLAudioVisualizer {
 
             //z *= 100 * integralCorrectionFactor
 
-            //z = clamp(z,-3000,3000)
-
-            z = this.scale(z,0,1000,0, this.equalizer)
             
+            z = this.scale(z,0,1000,0, this.equalizer)
 
             if(distFromCenter < 300 && z != 0){
                 z -= z*(80 - 80 * Math.pow(distFromCenter/300, 2) ) /80
@@ -411,8 +409,9 @@ class WEBGLAudioVisualizer {
 
             totalCurrentMaxHeight = Math.max(totalCurrentMaxHeight, z)
 
+            z = clamp(z,-1000,1000)
+
             this.colors[i] = z / this.targetZHeight + 0.1
-            
             //set Z pos and clamp max / min height
             this.positions[i + 2] = z;
             
