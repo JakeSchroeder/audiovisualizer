@@ -89,6 +89,11 @@
   dependencies:
     "@types/sizzle" "*"
 
+"@types/jsmediatags@^3.9.3":
+  version "3.9.3"
+  resolved "https://registry.yarnpkg.com/@types/jsmediatags/-/jsmediatags-3.9.3.tgz#b98b964ac052ab301f6ca0efee89642fc4e6f35d"
+  integrity sha512-oNEPG+SI5E/VWK0x9JTWwkU+LmmOgW4tisCE4IrxiyNfzIRyg9kspNjaoqknpN9HUIexDvbD2/wbViw6TGIFgw==
+
 "@types/json-schema@*", "@types/json-schema@^7.0.7":
   version "7.0.8"
   resolved "https://registry.npmjs.org/@types/json-schema/-/json-schema-7.0.8.tgz"
@@ -136,6 +141,11 @@
   version "0.130.0"
   resolved "https://registry.npmjs.org/@types/three/-/three-0.130.0.tgz"
   integrity sha512-7MKKxlEjHoAGTBRxEcDOjO4OvOrvUM6xtyjPiubNcU6bRPNmjNaV/PI9tiaXkk8cauZ9FuRbdCV4g0rQod+FkQ==
+
+"@types/uuid@^8.3.1":
+  version "8.3.1"
+  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-8.3.1.tgz#1a32969cf8f0364b3d8c8af9cc3555b7805df14f"
+  integrity sha512-Y2mHTRAbqfFkpjldbkHGY8JIzRN6XqYRliG8/24FcHm2D2PwW24fl5xMRTVGdrb7iMrwCaIEbLWerGIkXuFWVg==
 
 "@webassemblyjs/ast@1.11.1":
   version "1.11.1"
@@ -1718,6 +1728,13 @@ jest-worker@^27.0.2:
     merge-stream "^2.0.0"
     supports-color "^8.0.0"
 
+jsmediatags@^3.9.7:
+  version "3.9.7"
+  resolved "https://registry.yarnpkg.com/jsmediatags/-/jsmediatags-3.9.7.tgz#808c6713b5ccb9712a4dc4b2149a0cb253c641a2"
+  integrity sha512-xCAO8C3li3t5hYkXqn8iv8zQQUB4T1QqRN2aSONHMls21ICdEvXi4xtb6W70/fAFYSDwMHd32hIqvo4YuXoNcQ==
+  dependencies:
+    xhr2 "^0.1.4"
+
 json-parse-better-errors@^1.0.2:
   version "1.0.2"
   resolved "https://registry.npmjs.org/json-parse-better-errors/-/json-parse-better-errors-1.0.2.tgz"
@@ -3044,6 +3061,11 @@ uuid@^3.3.2, uuid@^3.4.0:
   resolved "https://registry.npmjs.org/uuid/-/uuid-3.4.0.tgz"
   integrity sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==
 
+uuid@^8.3.2:
+  version "8.3.2"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
+  integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
+
 v8-compile-cache@^2.2.0:
   version "2.3.0"
   resolved "https://registry.npmjs.org/v8-compile-cache/-/v8-compile-cache-2.3.0.tgz"
@@ -3249,6 +3271,11 @@ ws@^6.2.1:
   integrity sha512-zmhltoSR8u1cnDsD43TX59mzoMZsLKqUweyYBAIvTngR3shc0W6aOZylZmq/7hqyVxPdi+5Ud2QInblgyE72fw==
   dependencies:
     async-limiter "~1.0.0"
+
+xhr2@^0.1.4:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/xhr2/-/xhr2-0.1.4.tgz#7f87658847716db5026323812f818cadab387a5f"
+  integrity sha1-f4dliEdxbbUCYyOBL4GMras4el8=
 
 y18n@^4.0.0:
   version "4.0.1"

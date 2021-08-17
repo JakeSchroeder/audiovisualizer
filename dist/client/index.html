@@ -23,9 +23,9 @@
             </div>
             <div class="right">
                 <ul class="header-list">
-                    <li>
-                        <!--    <img class="profile-avatar" src="#" alt="profile avatar" /> -->
-                        <span>Jake Schroeder</span>
+                    <li class="f ac">
+                        <img width="18px" height="18px" class="profile-avatar" src="/images/account.svg" alt="profile avatar" />
+                        <span class="profile-name">Jake Schroeder</span>
                     </li>
                 </ul>
             </div>
@@ -37,21 +37,47 @@
                         <img width="24px" height="24px" class="search-icon" src="/images/search.svg" alt="search icon" />
                         <input placeholder="Search songs, artists, and playlists" type="text" id="searchMp3CollectionInputNode" class="search h3" />
                     </div>
-                    <select id="searchContextSelectNode" class="select">
-                        <option>Songs</option>
-                        <option>Playlists</option>
-                        <option>Effects</option>
-                    </select>
-                    <div class="table-wrapper">
-                        <hr />
-                        <div class="folder-wrapper f dc jc ac">
+                    <div class="f ac mt-6 ml-2">
+                        <button class="create-context f ac jc"><span>+</span></button>
+                        <select id="searchContextSelectNode" class="select ml">
+                            <option>Songs</option>
+                            <option>Playlists</option>
+                            <option>Effects</option>
+                        </select>
+                    </div>
+                    <div class="songlist-wrapper mt-3">
+                        <table class="songlist-table" cellspacing="0">
+                            <thead>
+                                <tr class="songlist-rowheader">
+                                    <th>#</th>
+                                    <th>Title</th>
+                                    <th>Album</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="songlist-item">
+                                    <td>1</td>
+                                    <td class="f ac">
+                                        <img width="32px" height="32px" src="/images/no-album.png" />
+                                        <div class="f dc ml-2">
+                                            <span class="songlist-itemtitle">Oh Hell Nah!</span>
+                                            <span class="songlist-itemartists small mt">711, Dude Guy</span>
+                                        </div>
+                                    </td>
+                                    <td>Shrooms</td>
+                                    <td>8:11</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- <div class="folder-wrapper f dc jc ac">
                             <img width="60px" id="folderImageNode" class="folder-image" src="/images/folder-closed.svg" alt="folder closed icon" />
                             <span class="p tc">Drag & Drop<br />.mp3 files here</span>
                             <span class="p">or</span>
                             <button id="selectFileBtnNode">Select File</button>
                             <input id="mp3FileUploadNode" type="file" />
-                        </div>
-                        <!-- <table class="song-table"></table> -->
+                        </div> -->
                     </div>
                 </div>
             </div>
@@ -59,7 +85,7 @@
         <div class="player">
             <div class="f js ae">
                 <div class="album-wrapper f ac">
-                    <img width="80px" height="80px" class="album-image" src="/images/no-album.png" alt="no album cover image" />
+                    <img width="64px" height="64px" class="album-image" src="/images/no-album.png" alt="no album cover image" />
                     <div class="album-text f dc as">
                         <span class="h3">Nothing to say</span>
                         <span class="p">Aphex Man</span>
@@ -69,7 +95,7 @@
                     <div class="player-center f dc">
                         <div class="f ac jc">
                             <img width="24px" height="18px" src="/images/skipBack.svg" class="skipprev-image" alt="skipprev image" />
-                            <img width="48px" height="48px" src="/images/play.svg" class="play-image" alt="play image" />
+                            <img width="36px" height="36px" src="/images/play.svg" class="play-image" alt="play image" />
                             <img width="24px" height="18px" src="/images/skipForward.svg" class="skipnext-image" alt="skipnext image" />
                         </div>
                         <div class="progress-wrapper f ac js">
@@ -79,9 +105,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="sound-wrapper">
-                    <img width="24px" height="24px" src="/images/volume.svg" alt="volume icon" />
-                    <progress value="70" id="volumeControlNode" class="sound-progress" max="100"></progress>
+                <div class="sound-wrapper jn">
+                    <div class="f ac">
+                        <img width="24px" height="24px" src="/images/volume.svg" alt="volume icon" />
+                        <progress value="70" id="volumeControlNode" class="sound-progress" max="100"></progress>
+                    </div>
                 </div>
             </div>
         </div>

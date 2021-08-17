@@ -25,7 +25,7 @@ body.active {
 
 header {
     height: 48px;
-    border-bottom: 0.33px solid #ffffff44;
+
     width: 100%;
     font-size: 1.4em;
 }
@@ -45,7 +45,7 @@ hr {
 }
 
 button {
-    border: 1px solid #ffffff44;
+    border: 1px solid white;
     background: transparent;
     color: white;
     font-size: 1.6em;
@@ -111,6 +111,10 @@ input:-moz-placeholder {
     align-items: center;
 }
 
+.je {
+    justify-content: space-evenly;
+}
+
 .jc {
     justify-content: center;
 }
@@ -123,17 +127,63 @@ input:-moz-placeholder {
     flex-direction: column;
 }
 
+.jn {
+    justify-content: flex-end;
+}
+
 /* End flex definitions */
 
+/* Start Margin Layout definitions */
+
+.ml {
+    margin-left: 0.4em;
+}
+
+.ml-1 {
+    margin-left: 0.8em;
+}
+
+.ml-2 {
+    margin-left: 1.6em;
+}
+
+.ml-3 {
+    margin-left: 2.4em;
+}
+
+.mt {
+    margin-top: 0.4em;
+}
+
+.mt-1 {
+    margin-top: 0.8em;
+}
+
+.mt-2 {
+    margin-top: 1.6em;
+}
+
+.mt-3 {
+    margin-top: 3.2em;
+}
+
+.mt-4 {
+    margin-top: 4.8em;
+}
+
+.mt-6 {
+    margin-top: 6.4em;
+}
+
 .container {
-    max-width: 800px;
+    max-width: 840px;
     width: 100%;
     margin: 0 auto;
     padding: 0 3.2em;
 }
 
 .container-l {
-    max-width: 1420em;
+    max-width: 1300em;
 }
 
 .container-f {
@@ -205,7 +255,7 @@ input:-moz-placeholder {
 
 .player {
     width: 100%;
-    padding: 3.2em;
+    padding: 3.2em 6.4em;
 }
 
 .player-center {
@@ -247,7 +297,7 @@ input:-moz-placeholder {
 }
 
 .sound-progress {
-    width: 24em;
+    width: 16em;
     margin-left: 1.6em;
 }
 /* background: */
@@ -287,15 +337,24 @@ progress {
     border: none;
     font-size: 3.2em;
     width: 140px;
-    margin-top: 1.6em;
+
     border: none;
+}
+
+.create-context {
+    width: 32px;
+    height: 32px;
+    margin-top: 0;
+    line-height: 24px;
+    font-size: 2.4em;
+}
+
+.create-context span {
+    margin-top: -6px;
 }
 
 .table-wrapper {
     margin-top: 4.8em;
-}
-
-.table-wrapper.active {
 }
 
 .folder-wrapper {
@@ -332,4 +391,49 @@ progress {
     bottom: 0;
     top: 0;
     right: 0;
+}
+
+.profile-name {
+    margin-left: 0.8em;
+}
+
+.song-image {
+    display: block;
+}
+
+.songlist-wrapper {
+    width: 100%;
+}
+
+.songlist-table {
+    width: 100%;
+    font-size: 1.4em;
+    border-collapse: collapse;
+}
+
+/* .songlist-table {
+} */
+
+/* .songlist-table tr {
+    border-bottom: 1px solid #ffffff;
+} */
+
+.songlist-table td,
+.songlist-table th {
+    padding: 1.6em;
+    text-align: left;
+    font-weight: normal;
+}
+
+.songlist-table td:first-child {
+    width: 48px;
+}
+
+.songlist-item {
+    border-top: 1px solid white;
+}
+
+.small {
+    font-size: 0.8em;
+    color: #ffffff77;
 }
