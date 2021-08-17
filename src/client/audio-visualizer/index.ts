@@ -411,7 +411,7 @@ class WEBGLAudioVisualizer {
 
             totalCurrentMaxHeight = Math.max(totalCurrentMaxHeight, z)
 
-            this.colors[i] = z / this.targetZHeight
+            this.colors[i] = z / this.targetZHeight + 0.1
             
             //set Z pos and clamp max / min height
             this.positions[i + 2] = z;
@@ -431,12 +431,12 @@ class WEBGLAudioVisualizer {
         }
         
 
-        if(this.floatingMaxZHeight != 0){
+        if(this.floatingMaxZHeight != 0 && totalCurrentMaxHeight != 0){
             if( totalCurrentMaxHeight <= this.targetZHeight ){
-                this.maxRadius +=  0.15 * Math.abs(this.targetZHeight - this.floatingMaxZHeight) //* (this.targetZHeight - this.floatingMaxZHeight)
+                this.maxRadius +=  0.1 * Math.abs(this.targetZHeight - this.floatingMaxZHeight) //* (this.targetZHeight - this.floatingMaxZHeight)
                 this.equalizer += 5 * Math.abs(this.targetZHeight - this.floatingMaxZHeight) //* (this.targetZHeight - this.floatingMaxZHeight) //(1.2 * this.floatingMaxZHeight) * (deltaTime / 1000)
             }else{
-                this.maxRadius -= 0.15 * Math.abs(this.floatingMaxZHeight - this.targetZHeight)  //* (this.targetZHeight - this.floatingMaxZHeight)
+                this.maxRadius -= 0.1 * Math.abs(this.floatingMaxZHeight - this.targetZHeight)  //* (this.targetZHeight - this.floatingMaxZHeight)
                 this.equalizer -= 5 * Math.abs(this.floatingMaxZHeight - this.targetZHeight) //* (this.targetZHeight - this.floatingMaxZHeight) //(0.1 * this.floatingMaxZHeight) 
             }
         }
@@ -455,8 +455,9 @@ class WEBGLAudioVisualizer {
         this.geometry.setAttribute('position', new THREE.Float32BufferAttribute(this.positions, 3));
         this.geometry.setAttribute('color', new THREE.Float32BufferAttribute(this.colors, 3));
 
-        //this.camera.position.z = this.scale(this.floatingMaxZHeight * 2,0,500,2000,6000)
-
+        this.camera.position.z = 6000 //this.scale(this.maxRadius,800,10000,2000,7000)
+        this.camera.position.x = 0
+        this.camera.position.y = 0
 
     }
 
