@@ -41,7 +41,7 @@ class WEBGLAudioVisualizer {
 
 
     private maxAmp = 100;
-    private totalMaxZheight = 0;
+    private floatingMaxZHeight = 0;
     private totalAmp = 0;
     private maxRadius = 2000;
     private targetZHeight = 200;
@@ -59,7 +59,7 @@ class WEBGLAudioVisualizer {
     private previousTime: number;
     private integralSensitivityFactor: number;
     private totalCurrentAvgZHeight: number;
-    private allTotalAvgZHeights: number[];
+    private zHeightSum: number[];
 
     constructor(containerDOMNodeId: string, audioSource: string) {
 
@@ -79,7 +79,7 @@ class WEBGLAudioVisualizer {
         this.startTime = Date.now();
         this.renderer = new THREE.WebGLRenderer();
         this.camera = new THREE.PerspectiveCamera(27, window.innerWidth / window.innerHeight, 5, 10000);
-        this.camera.position.z = 4000;
+        this.camera.position.z = 7000;
         this.scene = new Scene();
         this.scene.background = new THREE.Color(0x050505);
         this.scene.fog = new THREE.Fog(0x050505, 8000, 9000);
@@ -89,7 +89,7 @@ class WEBGLAudioVisualizer {
         this.material = new THREE.PointsMaterial({ size: 15, vertexColors: true });
         this.points = new THREE.Points(this.geometry, this.material);
 
-        this.freqChannels = 64;
+        this.freqChannels = 32;
         this.positions = [];
         this.soundData = new Uint8Array();
         this.previousAvgAmp = [];
@@ -108,7 +108,7 @@ class WEBGLAudioVisualizer {
         this.previousTime = 0;
         this.integralSensitivityFactor = 1;
         this.totalCurrentAvgZHeight = 0;
-        this.allTotalAvgZHeights = [];
+        this.zHeightSum = [];
     }
 
     public createScene() {
@@ -193,11 +193,12 @@ class WEBGLAudioVisualizer {
         let amp: number[] = [this.freqChannels];
         this.totalAmp = 0;
         this.totalCurrentAvgZHeight = 0;
+        this.zHeightSum = [];
         let averageZHeightRunningSum = 0;
         let totalCurrentMaxHeight = 0;
         this.totalAvgVolume = 0;
         let EWMA_average = 0;
-        let EWMA_range = 20;
+        let EWMA_range = 30;
 
         for (let n = 0; n < Math.max(this.previousAvgAmp.length, this.freqChannels); n++) {
             //averages the last 10 frames of avg volume data (normalized gaussian distribution)
@@ -223,8 +224,9 @@ class WEBGLAudioVisualizer {
 
         if (this.totalAmp && EWMA_average) this.beat_multiplier = this.totalAmp / EWMA_average;
 
-        let autoLeveler = clamp(this.integral, -1, 1);
-        //console.log(autoLeveler);
+        
+        let integralCorrectionFactor = this.integral;
+        //console.log(integralCorrectionFactor);
 
         //for every particle ("i" represents the index of the coordinate position : [x,y,z,x,y,z,...])
         for (let i = 0; i < this.particles * 3; i += 3) {
@@ -236,9 +238,9 @@ class WEBGLAudioVisualizer {
 
             let z = 0;
 
-            let normalizedDistFromCenter = clamp(distFromCenter / this.maxRadius, 0, 1);
-            let pointFrequencyAssignemnt = Math.floor(normalizedDistFromCenter * this.freqChannels);
-            if (pointFrequencyAssignemnt < this.freqChannels - 1) {
+            let normalizedDistFromCenter = clamp( distFromCenter / this.maxRadius, 0, 1);
+            let pointFrequencyAssignemnt = Math.floor(normalizedDistFromCenter * this.freqChannels) ;
+            if (pointFrequencyAssignemnt < this.freqChannels ) {
                 //finds which freq this point maps to
 
                 /* (ratio of current frame average volume to the past (1 to 40 frames') average volume) * 
@@ -247,67 +249,85 @@ class WEBGLAudioVisualizer {
                    (the non-zero value that remaps the scalars to a larger range) *
                    (the volume:height associated with this particles freqency)
                */
-                z = this.beat_multiplier * this.totalAmp * this.maxAmp * amp[pointFrequencyAssignemnt];
+                z = amp[pointFrequencyAssignemnt];
                 
                 //then interpolation adjustment
-                z +=
-                    (this.beat_multiplier * this.totalAmp * this.maxAmp * amp[pointFrequencyAssignemnt + 1] - z) *
+                if(amp[pointFrequencyAssignemnt + 1] != 0){
+                    z +=
+                    (amp[pointFrequencyAssignemnt + 1] - z) * 
                     (normalizedDistFromCenter * this.freqChannels - pointFrequencyAssignemnt);
+                }else{
+                    z -= z * (normalizedDistFromCenter * this.freqChannels - pointFrequencyAssignemnt);
+                }
 
-                z += (z * z) * this.totalCurrentAvgZHeight
+                z += z * this.maxAmp * this.totalAmp
+                z += z * 0.1 * this.beat_multiplier
+
+                //z += (z * z) * this.totalCurrentAvgZHeight
             } else {
-                z = 0;
+                z = 0
             }
 
             //radial position based height rebalancer (creates the dome shap for the vitual speaker)
-            //z *= 30 * ((distFromCenter - 10) / Math.sqrt(Math.pow(distFromCenter - 10, 2) + 1000000)) + 1;
             z *= 10  * ( distFromCenter / this.maxRadius)
 
-            z = clamp(z,-3000,3000)
+            //z *= 100 * integralCorrectionFactor
 
-            z = this.scale(z,0,1000,0, this.equalizer)
+            //z = clamp(z,-3000,3000)
+
+            z = this.scale(z,0,500,0, this.equalizer)
 
 
-            if(distFromCenter/this.maxRadius < 0.07 && z != 0){
-                z = (80 - 80 * Math.pow(distFromCenter/this.maxRadius/ 0.07, 2) ) 
+            if(distFromCenter < 300 && z != 0){
+                z -= z*(80 - 80 * Math.pow(distFromCenter/300, 2) ) /80
 
             }
             
-            averageZHeightRunningSum += z;
+            if(Math.abs(z) > 0){
+                averageZHeightRunningSum += z / normalizedDistFromCenter;
+                this.zHeightSum.push(averageZHeightRunningSum);
+            }
 
             totalCurrentMaxHeight = Math.max(totalCurrentMaxHeight, z)
 
-            if(totalCurrentMaxHeight > this.totalMaxZheight)
+            if(totalCurrentMaxHeight > this.floatingMaxZHeight)
             {
-                this.totalMaxZheight += 1
+                this.floatingMaxZHeight += 1
             }else{
-                this.totalMaxZheight -= 1
+                this.floatingMaxZHeight -= 1
             }
     
             //set Z pos and clamp max / min height
             this.positions[i + 2] = z;
             
         }
-        this.totalCurrentAvgZHeight = averageZHeightRunningSum / this.particles
 
-        if(this.totalMaxZheight != 0){
+
+        if(this.zHeightSum.length != 0){
+            this.totalCurrentAvgZHeight = averageZHeightRunningSum / this.zHeightSum.length
+        }
+        
+
+        if(this.floatingMaxZHeight != 0){
             if( totalCurrentMaxHeight <= this.targetZHeight ){
-                this.maxRadius +=  0.1 * Math.abs(this.targetZHeight - this.totalMaxZheight) //* (this.targetZHeight - this.totalMaxZheight)
-                this.equalizer += 1 * Math.abs(this.targetZHeight - this.totalMaxZheight) //* (this.targetZHeight - this.totalMaxZheight) //(1.2 * this.totalMaxZheight) * (deltaTime / 1000)
+                this.maxRadius +=  0.1 * Math.abs(this.targetZHeight - this.floatingMaxZHeight) //* (this.targetZHeight - this.floatingMaxZHeight)
+                this.equalizer += 1 * Math.abs(this.targetZHeight - this.floatingMaxZHeight) //* (this.targetZHeight - this.floatingMaxZHeight) //(1.2 * this.floatingMaxZHeight) * (deltaTime / 1000)
             }else{
-                this.maxRadius -= 0.1 * Math.abs(this.totalMaxZheight - this.targetZHeight)  //* (this.targetZHeight - this.totalMaxZheight)
-                this.equalizer -= 1 * Math.abs(this.totalMaxZheight - this.targetZHeight) //* (this.targetZHeight - this.totalMaxZheight) //(0.1 * this.totalMaxZheight) 
+                this.maxRadius -= 0.1 * Math.abs(this.floatingMaxZHeight - this.targetZHeight)  //* (this.targetZHeight - this.floatingMaxZHeight)
+                this.equalizer -= 1 * Math.abs(this.floatingMaxZHeight - this.targetZHeight) //* (this.targetZHeight - this.floatingMaxZHeight) //(0.1 * this.floatingMaxZHeight) 
             }
         }
 
-        let debug = [Math.round(this.totalMaxZheight) , Math.round(this.equalizer)]
-        console.log(debug);
+        let debug = [Math.round(this.floatingMaxZHeight) , Math.round(this.equalizer)]
+        //console.log(debug);
         
 
 
-        let error = this.targetZHeight - this.totalCurrentAvgZHeight;
-        this.integral += this.integralSensitivityFactor * error * deltaTime;
-
+        let error = 800 - this.totalCurrentAvgZHeight;
+        this.integral += this.integralSensitivityFactor * error * (deltaTime / 1000000);
+        this.integral = clamp(this.integral, -1, 1);
+        //console.log(Math.round(10 * this.integral));
+        //console.log(error)
 
         this.geometry.setAttribute('position', new THREE.Float32BufferAttribute(this.positions, 3));
     }
