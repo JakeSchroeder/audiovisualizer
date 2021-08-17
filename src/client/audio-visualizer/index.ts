@@ -6,9 +6,7 @@ import { Audio, AudioAnalyser, Clock, Color, PerspectiveCamera, Points, PointsMa
 import { clamp } from 'three/src/math/MathUtils';
 import { totalmem } from 'os';
 
-
-const myBtn = document.getElementById("playButton");
-
+const myBtn = document.getElementById('playButton');
 
 type Div = HTMLDivElement | null;
 
@@ -40,7 +38,6 @@ class WEBGLAudioVisualizer {
     private particlesRemainingInCircle = 0;
     private radius = 0;
     private particlesInCircle = 0;
-
 
     private maxAmp = 100;
     private floatingMaxZHeight = 0;
@@ -84,17 +81,27 @@ class WEBGLAudioVisualizer {
 
 
     constructor(containerDOMNodeId: string, audioSource: string) {
+<<<<<<< HEAD
 
+=======
+>>>>>>> 239bd4a4c508d3ae022a1053f10173cc6a9ce0ac
         this.audioSource = audioSource;
         this.listener = new THREE.AudioListener();
         this.sound = new THREE.Audio(this.listener);
 
-        myBtn?.addEventListener("click", () => {
+        myBtn?.addEventListener('click', () => {
             this.loadAudio();
+<<<<<<< HEAD
         })
 
         this.containerDOMNode = document.getElementById(containerDOMNodeId) as Div;
         
+=======
+        });
+
+        this.containerDOMNode = document.getElementById(containerDOMNodeId) as Div;
+
+>>>>>>> 239bd4a4c508d3ae022a1053f10173cc6a9ce0ac
         this.startTime = Date.now();
         this.renderer = new THREE.WebGLRenderer();
         this.camera = new THREE.PerspectiveCamera(27, window.innerWidth / window.innerHeight, 5, 10000);
@@ -190,26 +197,41 @@ class WEBGLAudioVisualizer {
         let color = new THREE.Color();
 
         for (let i = 0; i < this.particles; i++) {
-
-            if(this.particlesRemainingInCircle <= 0){
+            if (this.particlesRemainingInCircle <= 0) {
                 this.radius += this.particleSpacing;
                 let circumference = 2 * this.radius * Math.PI;
                 this.particlesInCircle = Math.round(circumference / this.particleSpacing);
                 this.particlesRemainingInCircle = this.particlesInCircle;
             }
+<<<<<<< HEAD
             this.particlesRemainingInCircle --;
             let theta = 2 * Math.PI * (this.particlesRemainingInCircle / this.particlesInCircle);
 
             let x = this.radius * Math.sin(theta)
             let y = this.radius * Math.cos(theta)
+=======
+            this.particlesRemainingInCircle--;
+
+            let theta = 2 * Math.PI * (this.particlesRemainingInCircle / this.particlesInCircle);
+            let x = this.radius * Math.sin(theta);
+            let y = this.radius * Math.cos(theta);
+>>>>>>> 239bd4a4c508d3ae022a1053f10173cc6a9ce0ac
             let z = 0;
 
             //push to mesh position and color properties
             this.positions.push(x, y, z);
+<<<<<<< HEAD
             color.r = 1 - clamp( this.radius / this.maxRadius - 0.3 , 0, 1);
             color.g = 0
             color.b = 0
             this.colors.push(color.r, color.g, color.b);
+=======
+            color.r = 1 - clamp(this.radius / this.maxRadius - 0.3, 0, 1);
+            color.g = 0;
+            color.b = 0;
+            //color.setColorName('red');
+            colors.push(color.r, color.g, color.b);
+>>>>>>> 239bd4a4c508d3ae022a1053f10173cc6a9ce0ac
         }
 
         this.geometry.setAttribute('position', new THREE.Float32BufferAttribute(this.positions, 3));
@@ -220,6 +242,7 @@ class WEBGLAudioVisualizer {
         this.scene.add(this.points);
     }
 
+<<<<<<< HEAD
 
 
 
@@ -257,6 +280,16 @@ class WEBGLAudioVisualizer {
         this.points.rotation.x = -Math.sin(5 + time / oscillationTime) * sweepAngle;
 
         this.renderer.render(this.scene, this.camera);
+=======
+    private scale(number: number, inMin: number, inMax: number, outMin: number, outMax: number) {
+        let scaledValue = ((number - inMin) / (inMax - inMin)) * (outMax - outMin) + outMin;
+        scaledValue = clamp(scaledValue, outMin, outMax);
+        if (scaledValue) {
+            return scaledValue;
+        } else {
+            return 0;
+        }
+>>>>>>> 239bd4a4c508d3ae022a1053f10173cc6a9ce0ac
     }
 
 
@@ -304,7 +337,7 @@ class WEBGLAudioVisualizer {
 
     private showParticles() {
         const clamp = (num: number, min: number, max: number) => Math.min(Math.max(num, min), max);
-        
+
         let deltaTime = Date.now() - this.previousTime;
         this.previousTime = Date.now();
 
@@ -369,6 +402,7 @@ class WEBGLAudioVisualizer {
                    (the non-zero value that remaps the scalars to a larger range) *
                    (the volume:height associated with this particles freqency)
                */
+<<<<<<< HEAD
                 z = amp[pointFrequencyAssignemnt];
                 
                 //then interpolation adjustment
@@ -385,11 +419,18 @@ class WEBGLAudioVisualizer {
                 z += z * 0.3 * this.beat_multiplier
 
                 //z += (z * z) * this.totalCurrentAvgZHeight
+=======
+                z = this.beat_multiplier * this.totalAmp * this.maxAmp * amp[pointFrequencyAssignemnt];
+
+                //then interpolation adjustment
+                z += (this.beat_multiplier * this.totalAmp * this.maxAmp * amp[pointFrequencyAssignemnt + 1] - z) * (normalizedDistFromCenter * this.freqChannels - pointFrequencyAssignemnt);
+>>>>>>> 239bd4a4c508d3ae022a1053f10173cc6a9ce0ac
             } else {
                 z = 0
             }
 
             //radial position based height rebalancer (creates the dome shap for the vitual speaker)
+<<<<<<< HEAD
             z *= 5  * ( distFromCenter / this.maxRadius)
 
             //z *= 100 * integralCorrectionFactor
@@ -408,15 +449,40 @@ class WEBGLAudioVisualizer {
                 averageZHeightRunningSum += z / normalizedDistFromCenter;
                 this.zHeightSum.push(averageZHeightRunningSum);
             }
+=======
+            //z *= 30 * ((distFromCenter - 10) / Math.sqrt(Math.pow(distFromCenter - 10, 2) + 1000000)) + 1;
+            z *= 10 * (distFromCenter / this.maxRadius);
 
-            totalCurrentMaxHeight = Math.max(totalCurrentMaxHeight, z)
+            z = clamp(z, -3000, 3000);
 
+            z = this.scale(z, 0, 1000, 0, this.equalizer);
+
+            z += 0.5 * Math.pow(Math.abs(z - this.totalCurrentAvgZHeight), 2); //10 * (z - this.totalCurrentAvgZHeight) * amp[pointFrequencyAssignemnt];
+
+            if (distFromCenter / this.maxRadius < 0.07 && z != 0) {
+                z = 80 - 80 * Math.pow(distFromCenter / this.maxRadius / 0.07, 2);
+            }
+>>>>>>> 239bd4a4c508d3ae022a1053f10173cc6a9ce0ac
+
+            if (z > 1) averageZHeightRunningSum += z;
+
+            totalCurrentMaxHeight = Math.max(totalCurrentMaxHeight, z);
+
+<<<<<<< HEAD
             this.colors[i] = z / this.targetZHeight + 0.1
             
+=======
+            if (totalCurrentMaxHeight > this.totalMaxZheight) {
+                this.totalMaxZheight += 1;
+            } else {
+                this.totalMaxZheight -= 1;
+            }
+
+>>>>>>> 239bd4a4c508d3ae022a1053f10173cc6a9ce0ac
             //set Z pos and clamp max / min height
             this.positions[i + 2] = z;
-            
         }
+<<<<<<< HEAD
 
 
         if(totalCurrentMaxHeight > this.floatingMaxZHeight)
@@ -451,6 +517,25 @@ class WEBGLAudioVisualizer {
         this.integral = clamp(this.integral, -1, 1);
         //console.log(Math.round(10 * this.integral));
         //console.log(error)
+=======
+        this.totalCurrentAvgZHeight = averageZHeightRunningSum / this.particles;
+
+        if (this.totalMaxZheight != 0) {
+            if (totalCurrentMaxHeight <= this.targetZHeight) {
+                this.maxRadius += 0.1 * Math.abs(this.targetZHeight - this.totalMaxZheight); //* (this.targetZHeight - this.totalMaxZheight)
+                this.equalizer += 1 * Math.abs(this.targetZHeight - this.totalMaxZheight); //* (this.targetZHeight - this.totalMaxZheight) //(1.2 * this.totalMaxZheight) * (deltaTime / 1000)
+            } else {
+                this.maxRadius -= 0.1 * Math.abs(this.totalMaxZheight - this.targetZHeight); //* (this.targetZHeight - this.totalMaxZheight)
+                this.equalizer -= 1 * Math.abs(this.totalMaxZheight - this.targetZHeight); //* (this.targetZHeight - this.totalMaxZheight) //(0.1 * this.totalMaxZheight)
+            }
+        }
+
+        let debug = [Math.round(this.totalMaxZheight), Math.round(this.equalizer)];
+        console.log(debug);
+
+        let error = this.targetZHeight - this.totalCurrentAvgZHeight;
+        this.integral += this.integralSensitivityFactor * error * deltaTime;
+>>>>>>> 239bd4a4c508d3ae022a1053f10173cc6a9ce0ac
 
         this.geometry.setAttribute('position', new THREE.Float32BufferAttribute(this.positions, 3));
         this.geometry.setAttribute('color', new THREE.Float32BufferAttribute(this.colors, 3));
