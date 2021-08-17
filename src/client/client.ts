@@ -1,16 +1,7 @@
 import WEBGLAudioVisualizer from './audio-visualizer';
 //import { render } from './ui';
 
-<<<<<<< HEAD
 const BackgroundAnimation = new WEBGLAudioVisualizer('container', '/sounds/Pirates of the Caribbean - He\'s a Pirate (Extended).mp3');
-=======
-// function folderSwitcher() {
-//     return `
-//         <div class="">
-//         </div>
-//     `
-// }
->>>>>>> 239bd4a4c508d3ae022a1053f10173cc6a9ce0ac
 
 function initApp() {
     const BackgroundAnimation = new WEBGLAudioVisualizer('container', "/sounds/Pirates of the Caribbean - He's a Pirate (Extended).mp3");
