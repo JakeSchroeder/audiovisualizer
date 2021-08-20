@@ -55,6 +55,10 @@ button {
     cursor: pointer;
 }
 
+button span {
+    pointer-events: none;
+}
+
 input[type='file'] {
     opacity: 0;
 }
@@ -231,7 +235,7 @@ input:-moz-placeholder {
 .search-wrapper {
     border-radius: 999px;
     background-color: transparent;
-    border: 0.33px solid white;
+    border: 1px solid white;
 }
 
 .search {
@@ -336,8 +340,6 @@ progress {
     outline: none;
     border: none;
     font-size: 3.2em;
-    width: 140px;
-
     border: none;
 }
 
@@ -361,7 +363,7 @@ progress {
     width: 240px;
     height: 240px;
     margin: 4.8em auto;
-
+    border: 1px solid transparent;
     padding: 3.2em;
 }
 
@@ -409,6 +411,11 @@ progress {
     width: 100%;
     font-size: 1.4em;
     border-collapse: collapse;
+    border-bottom: 1px solid white;
+}
+
+#dragFileToUploadNode {
+    height: 100%;
 }
 
 /* .songlist-table {
@@ -436,4 +443,19 @@ progress {
 .small {
     font-size: 0.8em;
     color: #ffffff77;
+}
+
+.contextSelectNode option {
+    background-color: black;
+    border: 0;
+    box-shadow: none;
+}
+
+.temp_contextSelectNode {
+    font-size: 3.2em;
+}
+
+.drag-active div {
+    pointer-events: none !important;
+    border: 1px dashed #ffffff44;
 }
